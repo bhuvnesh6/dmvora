@@ -91,6 +91,26 @@ def init_db():
           event_key TEXT PRIMARY KEY, created_at TEXT NOT NULL
         );
         """)
+        # Backward-compatible Meta WhatsApp Flow columns.
+        form_columns = {row["name"] for row in c.execute("PRAGMA table_info(forms)").fetchall()}
+        for column, definition in (
+            ("meta_flow_id", "TEXT NOT NULL DEFAULT ''"),
+            ("first_screen_id", "TEXT NOT NULL DEFAULT 'WELCOME'"),
+            ("cta_text", "TEXT NOT NULL DEFAULT 'Open form'"),
+            ("prompt", "TEXT NOT NULL DEFAULT 'Please complete this form.'"),
+        ):
+            if column not in form_columns:
+                c.execute(f"ALTER TABLE forms ADD COLUMN {column} {definition}")
+        # DMvora-native Flow Studio metadata. Existing installations migrate in place.
+        form_columns = {row["name"] for row in c.execute("PRAGMA table_info(forms)").fetchall()}
+        for column, definition in (
+            ("number_id", "INTEGER"),
+            ("status", "TEXT NOT NULL DEFAULT 'LOCAL'"),
+            ("category", "TEXT NOT NULL DEFAULT 'LEAD_GENERATION'"),
+            ("screen_title", "TEXT NOT NULL DEFAULT 'A few details'"),
+        ):
+            if column not in form_columns:
+                c.execute(f"ALTER TABLE forms ADD COLUMN {column} {definition}")
 init_db()
 
 def now_iso():
@@ -158,8 +178,21 @@ def message_text(m):
         return (m.get("button") or {}).get("text", "")
     if typ == "interactive":
         i = m.get("interactive") or {}
-        return ((i.get("button_reply") or {}).get("title") or
-                (i.get("list_reply") or {}).get("title") or "")
+        reply_title = ((i.get("button_reply") or {}).get("title") or
+                       (i.get("list_reply") or {}).get("title"))
+        if reply_title:
+            return reply_title
+        nfm = i.get("nfm_reply") or {}
+        response = nfm.get("response_json") or {}
+        try:
+            response = json.loads(response) if isinstance(response, str) else response
+        except (TypeError, ValueError):
+            return "WhatsApp Flow form submitted"
+        if isinstance(response, dict):
+            response.pop("flow_token", None)
+            details = [f"{key.replace('_', ' ').title()}: {value}" for key, value in response.items()]
+            return "Form submitted\n" + "\n".join(details) if details else "WhatsApp Flow form submitted"
+        return "WhatsApp Flow form submitted"
     obj = m.get(typ) or {}
     return obj.get("caption") or f"[{typ}]"
 
@@ -211,6 +244,32 @@ def store_outgoing(number, lead, result, typ, body, raw=None, media_url=""):
                      body, raw or result.get("response",{}), "", media_url)
     return result
 
+def send_whatsapp_flow(number, lead, form, automation_id="manual"):
+    flow_token = f"dmvora:{number['id']}:{lead['id']}:{form['id']}:{secrets.token_urlsafe(8)}"
+    params = {
+        "flow_message_version": "3",
+        "flow_token": flow_token,
+        "flow_id": str(form["meta_flow_id"]),
+        "flow_cta": (form["cta_text"] or "Open form")[:20],
+        "flow_action": "navigate",
+        "flow_action_payload": {"screen": form["first_screen_id"] or "WELCOME"}
+    }
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": digits(lead["phone"]),
+        "type": "interactive",
+        "interactive": {
+            "type": "flow",
+            "body": {"text": (form["prompt"] or "Please complete this form.")[:1024]},
+            "action": {"name": "flow", "parameters": params}
+        }
+    }
+    result = send_payload(number, payload)
+    return store_outgoing(number, lead, result, "flow", form["prompt"], {
+        "flow_id": form["meta_flow_id"], "flow_token": flow_token
+    })
+
 def send_node(number, lead, node, flow_id):
     data = node.get("data") or {}
     kind = node.get("type")
@@ -221,12 +280,10 @@ def send_node(number, lead, node, flow_id):
     if kind == "form":
         form_id = int(data.get("form_id") or 0)
         with db() as c:
-            form = c.execute("SELECT * FROM forms WHERE id=?", (form_id,)).fetchone()
-        if not form:
-            return {"success":False,"error":"Form not found"}
-        link = f"{PUBLIC_BASE_URL}/f/{form['public_token']}?phone={lead['phone']}&number={number['id']}"
-        result = send_text(number, lead["phone"], f"{data.get('prompt') or 'Please fill this form:'}\n{link}")
-        return store_outgoing(number, lead, result, "text", f"{data.get('prompt') or 'Please fill this form:'}\n{link}")
+            form = c.execute("SELECT * FROM forms WHERE id=? AND (number_id=? OR number_id IS NULL)", (form_id, number["id"])).fetchone()
+        if not form or not form["meta_flow_id"]:
+            return {"success": False, "error": "Select a saved Meta WhatsApp Flow first"}
+        return send_whatsapp_flow(number, lead, dict(form), flow_id)
     body = data.get("body") or ""
     image_url = data.get("image_url") or ""
     if buttons:
@@ -249,7 +306,10 @@ def execute_node(number, lead, graph, node_id, flow_id, depth=0):
     if not result.get("success"):
         app.logger.warning("DMvora automation send failed: %s", result.get("error"))
         return
-    # Non-interactive nodes can continue automatically. Interactive choices wait for a click.
+    # A WhatsApp Flow node must pause until the customer submits the form.
+    # Message/image nodes with reply buttons also wait for the customer's choice.
+    if node.get("type") == "form":
+        return
     if node.get("type") not in ("message", "image") or not (node.get("data") or {}).get("buttons"):
         nxt = (node.get("data") or {}).get("next_id")
         if nxt:
@@ -308,7 +368,28 @@ def process_meta_payload(payload):
                 inserted = save_message(number["id"], lead["id"], wamid, "in", typ, body,
                                         m, media_id=media_id_from(m))
                 if inserted:
-                    if typ == "interactive":
+                    if typ == "interactive" and (m.get("interactive") or {}).get("type") == "nfm_reply":
+                        nfm = (m.get("interactive") or {}).get("nfm_reply") or {}
+                        response_json = nfm.get("response_json") or "{}"
+                        try:
+                            submitted = json.loads(response_json) if isinstance(response_json, str) else response_json
+                        except (TypeError, ValueError):
+                            submitted = {"raw_response": str(response_json)}
+                        token = str(submitted.pop("flow_token", "") or "")
+                        token_match = re.fullmatch(r"dmvora:(\d+):(\d+):(\d+):[^:]+", token)
+                        if token_match:
+                            token_number, token_lead, token_form = map(int, token_match.groups())
+                            if token_number == number["id"] and token_lead == lead["id"]:
+                                with db() as c:
+                                    form = c.execute("SELECT id FROM forms WHERE id=? AND (number_id=? OR number_id IS NULL)", (token_form, number["id"])).fetchone()
+                                    if form:
+                                        old_lead = c.execute("SELECT form_data FROM leads WHERE id=? AND number_id=?", (lead["id"], number["id"])).fetchone()
+                                        existing = json.loads(old_lead["form_data"] or "{}") if old_lead else {}
+                                        existing.update(submitted)
+                                        c.execute("UPDATE leads SET form_data=?,updated_at=? WHERE id=? AND number_id=?",
+                                                  (json.dumps(existing, ensure_ascii=False), now_iso(), lead["id"], number["id"]))
+                        app.logger.info("WhatsApp Flow response received for lead=%s", lead["id"])
+                    elif typ == "interactive":
                         reply = ((m.get("interactive") or {}).get("button_reply") or {})
                         bid = reply.get("id","")
                         match = re.fullmatch(r"dmv:(\d+):([^:]+):(\d+)", bid)
@@ -325,7 +406,7 @@ def process_meta_payload(payload):
                                     action = buttons[int(idx)]
                                     if action.get("action") == "form":
                                         form_node = {"type":"form","data":{"form_id":action.get("form_id"),
-                                            "prompt":action.get("prompt") or "Please fill this form:"}}
+                                            "prompt":action.get("prompt") or "Please complete this form in WhatsApp."}}
                                         send_node(number,lead,form_node,flow_id)
                                     elif action.get("action") == "url":
                                         url = action.get("url","")
@@ -590,25 +671,147 @@ def delete_automation(flow_id):
     with db() as c: c.execute("DELETE FROM automations WHERE id=?",(flow_id,))
     return jsonify(deleted=True)
 
+def clean_field_key(value):
+    key = re.sub(r"[^a-zA-Z0-9_]", "_", str(value or "field").strip()).strip("_").lower()
+    if not key or key[0].isdigit(): key = "field_" + key
+    return key[:32]
+
+def build_meta_flow_json(form_name, screen_title, fields):
+    """Build a single-screen, native WhatsApp Flow using supported input components."""
+    children = [{"type": "TextHeading", "text": str(screen_title or form_name)[:80]}]
+    payload = {}
+    for index, field in enumerate(fields):
+        kind = field.get("type", "text")
+        label = str(field.get("label") or f"Field {index+1}").strip()[:80]
+        key = clean_field_key(field.get("key") or label)
+        required = bool(field.get("required", False))
+        if kind in ("text", "email", "phone", "number"):
+            comp = {"type":"TextInput", "name":key, "label":label,
+                    "required":required, "input-type": {"text":"text","email":"email","phone":"phone","number":"number"}[kind]}
+        elif kind == "date":
+            comp = {"type":"DatePicker", "name":key, "label":label, "required":required}
+        elif kind in ("dropdown", "radio", "checkbox"):
+            options = field.get("options") or []
+            choices = []
+            seen = set()
+            for opt in options[:20]:
+                title = str(opt).strip()[:30]
+                oid = clean_field_key(title)
+                if title and oid not in seen:
+                    seen.add(oid); choices.append({"id":oid, "title":title})
+            if len(choices) < 2:
+                raise ValueError(f"{label}: add at least two unique options")
+            ctype = {"dropdown":"Dropdown", "radio":"RadioButtonsGroup", "checkbox":"CheckboxGroup"}[kind]
+            comp = {"type":ctype, "name":key, "label":label, "required":required, "data-source":choices}
+        else:
+            raise ValueError(f"Unsupported field type: {kind}")
+        children.append(comp)
+        payload[key] = "${form." + key + "}"
+    if not fields:
+        raise ValueError("Add at least one field before creating a WhatsApp Flow")
+    children.append({"type":"Footer", "label":"Submit", "on-click-action":{"name":"complete", "payload":payload}})
+    return {
+        "version":"7.3", "data_api_version":"3.0",
+        "routing_model":{"CONTACT":[]},
+        "screens":[{"id":"CONTACT", "title":str(form_name)[:80], "terminal":True,
+                    "layout":{"type":"SingleColumnLayout", "children":[{"type":"Form", "name":"lead_form", "children":children}]}}]
+    }
+
 @app.get("/api/forms")
 @login_required
 def api_forms():
-    with db() as c: rows=c.execute("SELECT id,name,fields_json,public_token,created_at FROM forms ORDER BY id DESC").fetchall()
-    return jsonify(forms=[{**dict(x),"fields":json.loads(x["fields_json"]),
-                           "url":f"{PUBLIC_BASE_URL}/f/{x['public_token']}"} for x in rows])
+    number_id = request.args.get("number_id", type=int)
+    with db() as c:
+        if number_id:
+            rows = c.execute("SELECT * FROM forms WHERE number_id=? OR number_id IS NULL ORDER BY id DESC", (number_id,)).fetchall()
+        else:
+            rows = c.execute("SELECT * FROM forms ORDER BY id DESC").fetchall()
+    return jsonify(forms=[{
+        "id":x["id"], "name":x["name"], "meta_flow_id":x["meta_flow_id"],
+        "first_screen_id":x["first_screen_id"], "cta_text":x["cta_text"], "prompt":x["prompt"],
+        "status":x["status"] if "status" in x.keys() else ("PUBLISHED" if x["meta_flow_id"] else "LOCAL"),
+        "category":x["category"] if "category" in x.keys() else "LEAD_GENERATION",
+        "number_id":x["number_id"] if "number_id" in x.keys() else None,
+        "fields":json.loads(x["fields_json"] or "[]"), "created_at":x["created_at"]
+    } for x in rows])
 
 @app.post("/api/forms")
 @login_required
 def save_form():
+    """Create the form in DMvora, then create/upload a DRAFT Flow in Meta."""
     d=request.get_json(silent=True) or {}
-    name=(d.get("name") or "New form").strip()
+    name=str(d.get("name") or "").strip()[:200]
+    number=get_number(int(d.get("number_id") or 0))
     fields=d.get("fields") or []
-    if not fields or len(fields)>20: return jsonify(error="Add between 1 and 20 fields"),400
-    token=secrets.token_urlsafe(18)
+    category=str(d.get("category") or "LEAD_GENERATION").upper()
+    allowed={"SIGN_UP","SIGN_IN","APPOINTMENT_BOOKING","LEAD_GENERATION","SHOPPING","CONTACT_US","CUSTOMER_SUPPORT","SURVEY","OTHER"}
+    if not number: return jsonify(error="Select a connected WhatsApp number"),400
+    if not name: return jsonify(error="Enter a form name"),400
+    if category not in allowed: return jsonify(error="Invalid Flow category"),400
+    if not isinstance(fields,list) or len(fields)>20: return jsonify(error="Add between 1 and 20 supported fields"),400
+    try:
+        flow_json=build_meta_flow_json(name, d.get("screen_title") or "A few details", fields)
+    except ValueError as e:
+        return jsonify(error=str(e)),400
+    cta=str(d.get("cta_text") or "Continue").strip()
+    prompt=str(d.get("prompt") or "Please share a few details so we can help you.").strip()
+    if not cta or len(cta)>20: return jsonify(error="Button text must be 1–20 characters"),400
     with db() as c:
-        cur=c.execute("INSERT INTO forms(name,fields_json,public_token,created_at) VALUES(?,?,?,?)",
-                      (name,json.dumps(fields),token,now_iso()))
-    return jsonify(saved=True,id=cur.lastrowid,url=f"{PUBLIC_BASE_URL}/f/{token}")
+        cur=c.execute("""INSERT INTO forms(name,fields_json,public_token,created_at,meta_flow_id,
+            first_screen_id,cta_text,prompt,number_id,status,category,screen_title)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (name,json.dumps(fields,ensure_ascii=False),secrets.token_urlsafe(18),now_iso(),"","CONTACT",cta,prompt,
+             number["id"],"CREATING",category,str(d.get("screen_title") or "A few details")[:80]))
+        form_id=cur.lastrowid
+    # Meta Flow lifecycle: create draft -> upload flow.json (Meta validates it) -> user publishes.
+    ok,created=meta_request(number,"POST",f"{number['waba_id']}/flows",
+        data={"name":name,"categories":json.dumps([category])})
+    if not ok:
+        with db() as c: c.execute("UPDATE forms SET status='ERROR' WHERE id=?",(form_id,))
+        return jsonify(error=meta_error(created),details=created,form_id=form_id),400
+    meta_id=str(created.get("id") or "")
+    if not meta_id:
+        return jsonify(error="Meta did not return a Flow ID",details=created,form_id=form_id),502
+    upload_files={"file":("flow.json",json.dumps(flow_json,ensure_ascii=False),"application/json")}
+    ok,uploaded=meta_request(number,"POST",f"{meta_id}/assets",
+        data={"name":"flow.json","asset_type":"FLOW_JSON"},files=upload_files)
+    errors=uploaded.get("validation_errors") or uploaded.get("validationErrors") or []
+    status="DRAFT" if ok and not errors else "INVALID"
+    with db() as c:
+        c.execute("UPDATE forms SET meta_flow_id=?,status=? WHERE id=?",(meta_id,status,form_id))
+    if not ok or errors:
+        return jsonify(error=meta_error(uploaded) if not ok else "Meta Flow validation failed",
+                       validation_errors=errors,details=uploaded,form_id=form_id,meta_flow_id=meta_id),400
+    return jsonify(saved=True,id=form_id,meta_flow_id=meta_id,status="DRAFT",
+                   first_screen_id="CONTACT",validation=uploaded)
+
+@app.post("/api/forms/<int:form_id>/publish")
+@login_required
+def publish_form(form_id):
+    with db() as c: row=c.execute("SELECT * FROM forms WHERE id=?",(form_id,)).fetchone()
+    if not row: return jsonify(error="Form not found"),404
+    form=dict(row); number=get_number(form.get("number_id") or 0)
+    if not number: return jsonify(error="The WhatsApp number for this form is no longer connected"),400
+    if not form.get("meta_flow_id"): return jsonify(error="This form has no Meta Flow ID"),400
+    if form.get("status")=="PUBLISHED": return jsonify(published=True,status="PUBLISHED")
+    ok,result=meta_request(number,"POST",f"{form['meta_flow_id']}/publish")
+    if not ok: return jsonify(error=meta_error(result),details=result),400
+    with db() as c: c.execute("UPDATE forms SET status='PUBLISHED' WHERE id=?",(form_id,))
+    return jsonify(published=True,status="PUBLISHED",meta_flow_id=form["meta_flow_id"])
+
+@app.delete("/api/forms/<int:form_id>")
+@login_required
+def delete_form(form_id):
+    with db() as c: row=c.execute("SELECT * FROM forms WHERE id=?",(form_id,)).fetchone()
+    if not row: return jsonify(error="Form not found"),404
+    form=dict(row); number=get_number(form.get("number_id") or 0)
+    # Meta only permits deleting draft Flows. Published Flows must be deprecated in Meta.
+    if form.get("status")=="PUBLISHED": return jsonify(error="Published Meta Flows are immutable. Deprecate them in Meta; remove the local form only after confirming it is no longer used."),409
+    if number and form.get("meta_flow_id"):
+        ok,result=meta_request(number,"DELETE",form["meta_flow_id"])
+        if not ok: return jsonify(error=meta_error(result),details=result),400
+    with db() as c: c.execute("DELETE FROM forms WHERE id=?",(form_id,))
+    return jsonify(deleted=True)
 
 @app.get("/f/<token>")
 def public_form(token):
