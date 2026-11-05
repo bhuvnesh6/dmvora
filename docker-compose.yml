@@ -1,0 +1,11 @@
+services:
+  dmvora:
+    build: .
+    container_name: dmvora
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8822:8822"
+    volumes:
+      - ./data:/data
