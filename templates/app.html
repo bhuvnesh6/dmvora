@@ -1,45 +1,646 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DMvora · WhatsApp CRM</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"><link rel="stylesheet" href="{{ url_for('static',filename='forms-studio.css') }}">
-<script defer src="{{ url_for('static',filename='app.js') }}?v=20261105-forms1"></script><script defer src="{{ url_for('static',filename='forms-studio.js') }}?v=20261105-forms1"></script><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script></head>
-<body><div class="shell">
-<aside class="sidebar"><div class="brand"><span class="brand-mark">D</span><div><b>DMvora</b><small>WHATSAPP WORKSPACE</small></div></div>
-<div class="number-switch"><label>CONNECTED NUMBER</label><select id="numberSelect"><option value="">No number connected</option></select><small id="numberHint">Choose a business inbox</small></div>
-<nav class="nav">
-<button class="nav-link active" data-page="overview"><span><svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg></span> Overview</button>
-<button class="nav-link" data-page="inbox"><span><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></svg></span> Inbox <i id="inboxCount">0</i></button>
-<button class="nav-link" data-page="leads"><span><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1"/></svg></span> Leads</button>
-<button class="nav-link" data-page="automations"><span><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H13a3 3 0 0 1 3 3v6.5M6 8.5V14a3 3 0 0 0 3 3h6.5"/></svg></span> Automations</button>
-<button class="nav-link" data-page="templates"><span><svg viewBox="0 0 24 24"><path d="M5 3h10l4 4v14H5z"/><path d="M14 3v5h5M8 13h8M8 17h8"/></svg></span> Templates</button>
-<button class="nav-link" data-page="forms"><span><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h3"/></svg></span> Forms</button>
-<div class="nav-label">WORKSPACE</div>
-<button class="nav-link" data-page="settings"><span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.7 1.7-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5v.2h-2.4v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1L8 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H6.7v-2.4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9L8 8.6l1.7-1.7.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5v-.2h2.4v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1 1.7 1.7-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1h.2V14h-.2a1.7 1.7 0 0 0-1.5 1z"/></svg></span> Settings</button>
-</nav><div class="side-bottom"><div class="user-pill"><span class="avatar">A</span><div><b>{{ username }}</b><small>Workspace owner</small></div><a href="/logout" title="Sign out">↗</a></div></div></aside>
-<main class="main"><header class="topbar"><div><div class="crumb">DMVORA <span>/</span> <b id="crumbTitle">Overview</b></div><h2 id="pageTitle">Workspace overview</h2></div><div class="top-actions"><span class="live-dot">● Connected</span><button class="icon-btn" title="Refresh" onclick="refreshAll()">↻</button><div class="avatar">A</div></div></header>
-<div class="content">
-<section class="page active" id="page-overview"><div class="welcome"><div><span class="eyebrow">YOUR MESSAGING WORKSPACE</span><h1>Good to see you.</h1><p>Keep every WhatsApp business conversation organised.</p></div><button class="btn primary" onclick="showPage('settings')">＋ Connect number</button></div>
-<div class="stats"><article class="stat"><small>TOTAL LEADS</small><strong id="statLeads">0</strong><span>Across connected numbers</span></article><article class="stat"><small>CONVERSATIONS</small><strong id="statChats">0</strong><span>Saved inbox threads</span></article><article class="stat"><small>CONNECTED NUMBERS</small><strong id="statNumbers">0</strong><span>Business portfolios</span></article><article class="stat"><small>ACTIVE AUTOMATIONS</small><strong id="statFlows">0</strong><span>Enabled flows</span></article></div>
-<div class="panel-grid"><article class="panel"><div class="panel-head"><div><h3>Recent conversations</h3><p>Latest customer activity</p></div><button class="text-btn" onclick="showPage('inbox')">Open inbox →</button></div><div id="recentList" class="recent-list empty">Connect a number to start receiving messages.</div></article>
-<article class="panel quick-panel"><div class="panel-head"><div><h3>Quick actions</h3><p>Set up your workspace</p></div></div><button class="quick-action" onclick="showPage('settings')"><span class="quick-icon">＋</span><span><b>Connect WhatsApp number</b><small>Use Meta Embedded Signup</small></span><b>→</b></button><button class="quick-action" onclick="showPage('automations')"><span class="quick-icon">⌘</span><span><b>Build an automation</b><small>Trigger replies from a message</small></span><b>→</b></button><button class="quick-action" onclick="showPage('forms')"><span class="quick-icon">▤</span><span><b>Create an inbox form</b><small>Capture customer details</small></span><b>→</b></button></article></div></section>
+<meta name="csrf" content="{{ csrf_token }}">
+<title>DMvora · WhatsApp CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style>
+{% raw %}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#eef3fb;--card:#fff;--hover:#e9f1fc;--line:rgba(29,78,216,.11);--accent:#2563eb;--accent2:#1e3a8a;
+--grad:linear-gradient(135deg,#38bdf8 0%,#2563eb 55%,#1e3a8a 100%);--soft:linear-gradient(135deg,rgba(56,189,248,.14),rgba(37,99,235,.14));
+--h:#0b1e3d;--b:#5c6b8a;--dim:#93a3c2;--green:#16a34a;--red:#dc2626;--amber:#d97706;--r:14px;--rs:9px;
+--sh:0 1px 2px rgba(11,30,61,.05),0 2px 6px rgba(11,30,61,.06);--shl:0 10px 26px rgba(15,58,138,.12)}
+html,body{height:100%}
+body{font-family:Inter,sans-serif;background:var(--bg);color:var(--h);font-size:14px;
+background-image:radial-gradient(900px 600px at 200px -80px,rgba(37,99,235,.26),transparent 65%),radial-gradient(600px 400px at 100% 0,rgba(56,189,248,.12),transparent 60%)}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:13.5px;color:var(--h)}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#b9cdf0;border-radius:9px}
+.shell{display:flex;gap:16px;padding:16px;height:100vh}
+.sidebar{width:236px;flex-shrink:0;display:flex;flex-direction:column;gap:14px;height:100%}
+.brandbox,.navbox{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+.brandbox{padding:14px}
+.brand{display:flex;align-items:center;gap:11px}
+.mark{width:38px;height:38px;border-radius:11px;background:var(--grad);color:#fff;display:grid;place-items:center;font:700 18px 'Space Grotesk';box-shadow:0 6px 16px rgba(37,99,235,.35)}
+.brand b{font:700 16px 'Space Grotesk'}.brand small{display:block;font-size:9.5px;letter-spacing:.12em;color:var(--b)}
+.navbox{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.numsw{padding:12px 12px 4px}.numsw label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--dim)}
+.numsw select{width:100%;margin-top:6px;padding:9px 10px;border:1px solid var(--line);border-radius:var(--rs);background:var(--hover);font-weight:600}
+.nav{padding:8px 10px;flex:1;overflow-y:auto}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--dim);padding:14px 10px 6px}
+.nav-link{width:100%;display:flex;align-items:center;gap:11px;padding:10px;border:0;background:none;border-radius:var(--rs);color:var(--b);font-weight:500;font-size:13.5px;text-align:left;position:relative;transition:.15s}
+.nav-link:hover{background:var(--hover);color:var(--accent2)}
+.nav-link.active{background:linear-gradient(90deg,rgba(37,99,235,.13),rgba(37,99,235,.02));color:var(--accent);font-weight:600}
+.nav-link.active:before{content:'';position:absolute;left:0;top:18%;bottom:18%;width:3px;border-radius:0 4px 4px 0;background:var(--grad)}
+.nav-link svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.userbox{padding:12px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px;flex-shrink:0}
+.userbox b{font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}.userbox small{font-size:10.5px;color:var(--b);text-transform:capitalize}
+.userbox a{margin-left:auto;color:var(--dim);text-decoration:none;font-size:16px}.userbox a:hover{color:var(--red)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px}
+.topbar{height:60px;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:var(--r);display:flex;align-items:center;padding:0 22px;box-shadow:var(--sh);flex-shrink:0}
+.topbar h2{font:700 18px 'Space Grotesk';letter-spacing:-.2px}.topbar .spacer{flex:1}
+.pillbtn{border:1px solid var(--line);background:var(--hover);border-radius:99px;padding:7px 14px;font-weight:600;font-size:12px;color:var(--accent2)}
+.content{flex:1;min-height:0;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:26px 28px 40px}
+.banner{margin-bottom:16px;padding:12px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.banner.warn{background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);color:#92400e}
+.banner.bad{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.25);color:#b91c1c}
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.eyebrow{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.12em;color:var(--accent);background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.18);padding:4px 11px;border-radius:99px;margin-bottom:8px}
+h1{font:700 26px 'Space Grotesk';letter-spacing:-.4px}.section-head p{color:var(--b);margin-top:4px;max-width:640px;font-size:13.5px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--rs);border:1px solid var(--line);font-weight:600;font-size:13px;transition:.15s;text-decoration:none;color:var(--h);background:var(--hover)}
+.btn:hover{transform:translateY(-1px)}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn.primary{background:var(--grad);color:#fff;border:0;box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn.light{background:#fff}.btn.danger{background:rgba(220,38,38,.08);color:var(--red);border-color:rgba(220,38,38,.22)}
+.btn.wa{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:0}.btn.sm{padding:6px 11px;font-size:12px}
+.icon-btn{width:32px;height:32px;border-radius:var(--rs);border:1px solid var(--line);background:var(--hover);color:var(--b)}
+.icon-btn:hover{color:var(--accent)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--sh);margin-bottom:16px}
+.panel h3{font:700 15px 'Space Grotesk'}.panel .sub{color:var(--b);font-size:12.5px;margin:3px 0 14px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.stat:after{content:'';position:absolute;right:-26px;top:-26px;width:96px;height:96px;border-radius:50%;background:var(--accent);opacity:.07}
+.stat small{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--b)}.stat strong{display:block;font:700 30px 'Space Grotesk';margin:8px 0 4px}.stat span{font-size:12px;color:var(--dim)}
+.grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}@media(max-width:1000px){.grid2{grid-template-columns:1fr}}
+.bars{display:flex;align-items:flex-end;gap:12px;height:150px;padding-top:10px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.bar i{width:100%;max-width:38px;border-radius:7px 7px 0 0;background:var(--grad);min-height:3px;display:block}.bar i.o{background:#bcd3f7;border-radius:0}
+.bar small{font-size:10.5px;color:var(--dim)}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--b);margin-top:8px}.legend b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+.recent{display:flex;flex-direction:column}.recent-i{display:flex;gap:11px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.recent-i:last-child{border:0}.recent-i:hover{background:var(--hover)}.recent-i div{min-width:0;flex:1}.recent-i b{font-size:13px}.recent-i small{display:block;color:var(--b);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.empty-state{padding:44px 20px;text-align:center;color:var(--b)}.empty-state b{display:block;color:var(--h);margin-bottom:4px;font-size:15px}
+.quick{display:flex;align-items:center;gap:12px;width:100%;padding:13px;border:1px solid var(--line);border-radius:var(--rs);background:#fff;margin-bottom:10px;text-align:left}
+.quick:hover{background:var(--hover)}.quick .qi{width:36px;height:36px;border-radius:10px;background:var(--soft);display:grid;place-items:center;color:var(--accent);font-size:17px}
+.quick small{display:block;color:var(--b);font-size:12px}.quick span:last-child{margin-left:auto;color:var(--dim)}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:rgba(92,107,138,.14);color:var(--b)}
+.badge.green{background:rgba(22,163,74,.12);color:var(--green)}.badge.red{background:rgba(220,38,38,.1);color:var(--red)}
+.badge.blue{background:rgba(37,99,235,.12);color:var(--accent)}.badge.amber{background:rgba(217,119,6,.14);color:var(--amber)}
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse}th{background:var(--hover);font-size:10.5px;letter-spacing:.07em;color:var(--b);text-align:left;padding:11px 14px;font-weight:700}
+td{padding:11px 14px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}tr:hover td{background:rgba(37,99,235,.02)}
+.who{display:flex;align-items:center;gap:10px}.who small{display:block;color:var(--b);font-size:11.5px}
+.chip{display:inline-block;font-size:11px;background:var(--hover);border:1px solid var(--line);border-radius:6px;padding:2px 7px;margin:0 4px 4px 0;color:var(--b)}
+input.f,select.f,textarea.f{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:var(--rs);background:#f3f8ff;outline:none}
+input.f:focus,select.f:focus,textarea.f:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+textarea.f{resize:vertical;line-height:1.5}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--b);margin:12px 0 5px}.fl small{font-weight:400;color:var(--dim)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:700px){.row2,.row3{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:8px;font-size:13px;padding:8px 0}.check input{accent-color:var(--accent);width:16px;height:16px}
+.switch{position:relative;display:inline-block;width:40px;height:22px;flex-shrink:0}.switch input{opacity:0;width:0;height:0}
+.switch i{position:absolute;inset:0;background:#c7d6f2;border-radius:99px;cursor:pointer;transition:.2s}
+.switch i:before{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s}
+.switch input:checked+i{background:var(--grad)}.switch input:checked+i:before{transform:translateX(18px)}
+.overlay{position:fixed;inset:0;background:rgba(11,30,61,.45);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px;z-index:500}
+.modal{background:#fff;border-radius:var(--r);width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(11,30,61,.25)}
+.modal.wide{max-width:760px}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.modal-head h3{font:700 17px 'Space Grotesk'}.x{border:0;background:none;font-size:18px;color:var(--dim)}
+.modal-body{padding:6px 22px 18px;overflow-y:auto}.modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px;border-top:1px solid var(--line)}
+#toast{position:fixed;right:22px;bottom:22px;z-index:900;display:flex;flex-direction:column;gap:8px}
+.toast{background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--rs);padding:12px 16px;box-shadow:var(--shl);max-width:360px;font-size:13px;animation:up .25s}
+.toast.err{border-left-color:var(--red)}.toast.ok{border-left-color:var(--green)}@keyframes up{from{opacity:0;transform:translateY(10px)}}
+.tabs{display:inline-flex;background:var(--hover);border:1px solid var(--line);border-radius:99px;padding:3px;margin-bottom:16px;gap:2px;flex-wrap:wrap}
+.tabs button{border:0;background:none;padding:7px 16px;border-radius:99px;font-weight:600;font-size:12.5px;color:var(--b)}.tabs button.on{background:var(--grad);color:#fff}
+/* inbox */
+.inbox{display:grid;grid-template-columns:330px 1fr;height:calc(100vh - 270px);min-height:460px;padding:0;overflow:hidden}
+.conv{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}.conv-tools{padding:12px;border-bottom:1px solid var(--line)}
+#convs{overflow-y:auto;flex:1}.conv-i{display:flex;gap:11px;padding:12px 14px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.conv-i:hover{background:var(--hover)}.conv-i.on{background:rgba(37,99,235,.09);box-shadow:inset 3px 0 0 var(--accent)}
+.conv-i div{min-width:0;flex:1}.conv-i .t{display:flex;justify-content:space-between;gap:8px}.conv-i b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-i .t small{color:var(--dim);font-size:10.5px;white-space:nowrap}.conv-i p{color:var(--b);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}.dot.off{background:#cbd5e1}
+.thread{display:flex;flex-direction:column;min-width:0;min-height:0}.th-head{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.th-head .who{flex:1;min-width:150px}.thmsgs{flex:1;overflow-y:auto;padding:16px 22px;display:flex;flex-direction:column;gap:5px;min-height:0;background:#eef3fb;background-image:radial-gradient(rgba(37,99,235,.09) 1px,transparent 1px);background-size:22px 22px}
+.msg{max-width:68%;padding:8px 12px 5px;border-radius:12px;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;box-shadow:0 1px 1px rgba(11,30,61,.06)}
+.msg.in{align-self:flex-start;background:#fff;border:1px solid var(--line);border-top-left-radius:3px}.msg.out{align-self:flex-end;background:#dbeafe;border:1px solid rgba(37,99,235,.25);border-top-right-radius:3px}
+.msg img,.msg video{max-width:260px;max-height:260px;border-radius:8px;display:block;margin-bottom:4px}.msg .doc{display:inline-block;padding:7px 10px;background:rgba(37,99,235,.1);border-radius:8px;color:var(--accent);font-weight:600;text-decoration:none;margin-bottom:4px}
+.msg .meta{font-size:10px;color:var(--dim);text-align:right;margin-top:2px}.msg .meta .rd{color:#0ea5e9}
+.dayline{align-self:center;margin:8px 0}.dayline span{background:#fff;border:1px solid var(--line);color:var(--b);font-size:11px;font-weight:700;padding:3px 12px;border-radius:99px}
+.composer{display:flex;gap:8px;padding:12px 14px;border-top:1px solid var(--line);align-items:flex-end}.composer input{flex:1;padding:11px 15px;border:1px solid var(--line);border-radius:22px;background:var(--hover);outline:none}
+.closed{padding:12px 16px;background:rgba(217,119,6,.1);border-top:1px solid rgba(217,119,6,.3);color:#92400e;font-size:12.5px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.closed span{flex:1;min-width:180px}
+@media(max-width:900px){.inbox{grid-template-columns:1fr;height:auto}.conv{max-height:260px}.thread{height:520px}}
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:10px;transition:.2s}
+.card:hover{box-shadow:var(--shl);transform:translateY(-2px)}.card h4{font:700 15px 'Space Grotesk'}.card p{color:var(--b);font-size:12.5px;line-height:1.5}
+.card .acts{display:flex;gap:8px;margin-top:auto;flex-wrap:wrap}.card .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.tplbody{background:#eef3fb;border-radius:10px;padding:10px 12px;font-size:12.5px;white-space:pre-wrap;color:var(--h)}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.mi{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;cursor:pointer;position:relative;transition:.15s}.mi:hover{box-shadow:var(--shl);border-color:var(--accent)}
+.mi .th{height:104px;background:var(--hover);display:grid;place-items:center;font-size:34px;overflow:hidden}.mi .th img,.mi .th video{width:100%;height:100%;object-fit:cover}
+.mi .in{padding:8px 10px}.mi b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mi small{color:var(--dim);font-size:11px}
+.mi .rm{position:absolute;top:6px;right:6px;background:rgba(255,255,255,.92);width:24px;height:24px;border-radius:50%;border:0;font-size:12px;color:var(--red)}
+.drop{border:2px dashed #bcd3f7;border-radius:var(--r);padding:26px;text-align:center;color:var(--b);background:var(--hover);margin-bottom:16px}
+.numcard{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--rs);margin-bottom:10px}.numcard div{flex:1}.numcard small{color:var(--b);display:block}
+.connect{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.connect .ci{width:48px;height:48px;border-radius:14px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:22px}
+.connect .tx{flex:1;min-width:240px}.connect .tx p{color:var(--b);font-size:12.5px;margin-top:3px;line-height:1.5}
+.meter{margin-bottom:14px}.meter .tp{display:flex;justify-content:space-between;font-size:12.5px;font-weight:600;color:var(--b)}.meter .tr{height:7px;border-radius:9px;background:var(--hover);margin-top:7px;overflow:hidden}.meter i{display:block;height:100%;background:var(--grad);border-radius:9px}
+.planhero{background:var(--grad);color:#fff;border-radius:18px;padding:24px;margin-bottom:18px;box-shadow:0 12px 30px rgba(37,99,235,.3)}
+.planhero h2{font:700 26px 'Space Grotesk'}.planhero p{opacity:.88;margin-top:4px;font-size:13px}.planhero .facts{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}.planhero .facts div{background:rgba(255,255,255,.15);border-radius:12px;padding:10px 14px;font-size:12px}.planhero .facts b{display:block;font-size:15px;margin-top:2px}
+.plans{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}.plan{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;display:flex;flex-direction:column;box-shadow:var(--sh)}
+.plan.cur{border:2px solid var(--accent)}.plan .pr{font:700 32px 'Space Grotesk';margin:8px 0 2px}.plan ul{list-style:none;margin:12px 0 18px;display:grid;gap:8px;font-size:12.5px;color:var(--b)}.plan li:before{content:'✓';color:var(--green);font-weight:700;margin-right:8px}
+.linkbox{display:flex;gap:10px;align-items:center;background:var(--hover);border:1px dashed #9db9ec;border-radius:var(--rs);padding:10px 12px;margin-bottom:16px;flex-wrap:wrap}.linkbox code{flex:1;font-size:12.5px;color:var(--accent2);word-break:break-all;min-width:200px}
+/* automation editor */
+.step{border:1px solid var(--line);border-radius:var(--r);background:#fff;margin-bottom:14px;box-shadow:var(--sh)}
+.step-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(37,99,235,.05),transparent);border-radius:var(--r) var(--r) 0 0}
+.step-no{width:26px;height:26px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px;flex-shrink:0}
+.step-head input{flex:1;border:0;background:none;font-weight:600;font-size:14px;outline:none;min-width:80px}
+.step-body{padding:14px 16px;display:grid;grid-template-columns:1fr 280px;gap:18px}@media(max-width:900px){.step-body{grid-template-columns:1fr}}
+.pvwrap{background:#e6ddd4;border-radius:12px;padding:14px;align-self:start;min-height:120px;background-image:radial-gradient(rgba(0,0,0,.05) 1px,transparent 1px);background-size:14px 14px}
+.wa{background:#fff;border-radius:10px 10px 10px 2px;padding:8px 10px;font-size:12.5px;max-width:100%;box-shadow:0 1px 1px rgba(0,0,0,.12);word-break:break-word;line-height:1.45}
+.wa img,.wa video{width:100%;border-radius:7px;display:block;margin-bottom:6px;max-height:150px;object-fit:cover}.wa .fileph{padding:12px;background:#eef3fb;border-radius:7px;margin-bottom:6px;font-size:12px}
+.wa-btn{background:#fff;color:#0284c7;text-align:center;font-weight:600;font-size:12.5px;padding:8px;border-radius:8px;margin-top:4px;box-shadow:0 1px 1px rgba(0,0,0,.12)}
+.btnrow{display:grid;grid-template-columns:130px 140px 1fr 30px;gap:6px;margin-bottom:7px;align-items:center}@media(max-width:700px){.btnrow{grid-template-columns:1fr 1fr}}
+.btnrow input,.btnrow select{padding:8px 9px;border:1px solid var(--line);border-radius:7px;background:#f3f8ff;width:100%;min-width:0}
+.attach{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px dashed #9db9ec;border-radius:var(--rs);background:var(--hover);margin-top:10px;font-size:12.5px}.attach span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.addbar{display:flex;gap:8px;flex-wrap:wrap;padding:14px;border:1px dashed #9db9ec;border-radius:var(--r);background:var(--hover);align-items:center}.addbar b{font-size:12px;color:var(--b);margin-right:6px}
+.help{background:var(--soft);border-radius:var(--rs);padding:12px 14px;font-size:12.5px;color:var(--accent2);line-height:1.6;margin-bottom:16px}
+.fld{display:grid;grid-template-columns:150px 1fr 90px 30px;gap:8px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:var(--rs);margin-bottom:8px;background:#fff}
+@media(max-width:800px){.fld{grid-template-columns:1fr 1fr}}.fld input,.fld select,.fld textarea{padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#f3f8ff;width:100%;font-size:13px}
+.hidden{display:none!important}.mt{margin-top:14px}.tr{text-align:right}.flex{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.grow{flex:1}
+@media(max-width:900px){.shell{flex-direction:column;height:auto}.sidebar{width:100%;height:auto}.navbox{max-height:340px}.content{padding:18px 14px}}
+{% endraw %}
+</style></head>
+<body>
+{% raw %}
+<div class="shell">
+<aside class="sidebar">
+ <div class="brandbox"><div class="brand"><span class="mark">D</span><div><b>DMvora</b><small>WHATSAPP WORKSPACE</small></div></div></div>
+ <div class="navbox">
+  <div class="numsw"><label>WHATSAPP NUMBER</label><select id="numSel" onchange="setNumber(this.value)"><option value="">No number connected</option></select></div>
+  <nav class="nav" id="nav"></nav>
+  <div class="userbox"><span class="avatar" id="uAv">A</span><div><b id="uName">…</b><small id="uRole"></small></div><a href="/logout" title="Sign out">⏻</a></div>
+ </div>
+</aside>
+<main class="main">
+ <header class="topbar"><h2 id="pageTitle">Overview</h2><span class="spacer"></span><button class="pillbtn" id="planPill" onclick="go('billing')" style="display:none"></button></header>
+ <div class="content" id="content"><div id="banner"></div><div id="view"></div></div>
+</main></div>
+<div id="modal-root"></div><div id="toast"></div>
+{% endraw %}
+<script>
+{% raw %}
+const $=id=>document.getElementById(id);
+const CSRF=document.querySelector('meta[name=csrf]').content;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S={me:null,numbers:[],nid:null,page:'overview',timers:[],mediaMap:{},tpls:[],forms:[]};
+const money=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const fmtD=iso=>iso?new Date(iso).toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'}):'—';
+const fmtT=iso=>iso?new Date(iso).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+function ago(iso){if(!iso)return'';const d=new Date(iso),n=new Date();if(d.toDateString()===n.toDateString())return fmtT(iso);const y=new Date(n);y.setDate(n.getDate()-1);return d.toDateString()===y.toDateString()?'Yesterday':d.toLocaleDateString([], {day:'2-digit',month:'short'})}
+function toast(m,t){const e=document.createElement('div');e.className='toast '+(t||'');e.textContent=m;$('toast').appendChild(e);setTimeout(()=>e.remove(),4200)}
+async function api(path,opts={}){
+  const o={credentials:'same-origin',method:opts.method||'GET',headers:{'X-CSRF-Token':CSRF}};
+  if(opts.body instanceof FormData)o.body=opts.body;
+  else if(opts.body!==undefined){o.body=JSON.stringify(opts.body);o.headers['Content-Type']='application/json'}
+  const r=await fetch(path,o);let d={};try{d=await r.json()}catch(e){}
+  if(!r.ok){const e=new Error(d.error||'Request failed');e.status=r.status;e.data=d;if(r.status===401)location='/login';if(d.code==='plan_required')planBlocked();throw e}
+  return d}
+const view=h=>{$('view').innerHTML=h};
+const loading=()=>view('<div class="empty-state">Loading…</div>');
+function modal({title,body,wide,buttons=[]}){
+  const el=document.createElement('div');el.className='overlay';
+  el.innerHTML=`<div class="modal ${wide?'wide':''}"><div class="modal-head"><h3>${esc(title)}</h3><button class="x">✕</button></div><div class="modal-body">${body}</div><div class="modal-foot"></div></div>`;
+  const foot=el.querySelector('.modal-foot');
+  if(!buttons.length)foot.remove();
+  buttons.forEach(([label,cls,fn])=>{const b=document.createElement('button');b.className='btn '+cls;b.textContent=label;
+    b.onclick=async()=>{b.disabled=true;try{await fn(el)}catch(e){toast(e.message,'err')}finally{b.disabled=false}};foot.appendChild(b)});
+  el.querySelector('.x').onclick=()=>closeModal(el);
+  el.addEventListener('mousedown',e=>{if(e.target===el)closeModal(el)});
+  $('modal-root').appendChild(el);return el}
+function closeModal(el){(el||$('modal-root').lastElementChild)?.remove()}
+const confirmBox=(msg,fn,label='Confirm')=>modal({title:'Are you sure?',body:`<p style="padding:14px 0;color:var(--b)">${esc(msg)}</p>`,buttons:[['Cancel','light',e=>closeModal(e)],[label,'danger',async e=>{await fn();closeModal(e)}]]});
 
-<section class="page" id="page-inbox"><div class="section-head"><div><span class="eyebrow">CUSTOMER MESSAGES</span><h1>Inbox</h1><p>Incoming and outgoing WhatsApp conversations for the selected number.</p></div></div>
-<div class="inbox-layout panel"><div class="conversation-list"><div class="list-toolbar"><input id="inboxSearch" placeholder="Search conversations…" oninput="loadInbox()"></div><div id="conversationList" class="conversation-items empty">Select a connected number.</div></div>
-<div class="thread"><div id="threadHeader" class="thread-header"><div class="empty-state"><b>Select a conversation</b><small>Messages will appear here.</small></div></div><div id="threadMessages" class="thread-messages"></div><form id="replyForm" class="reply-box"><input id="replyText" placeholder="Write a WhatsApp message…" autocomplete="off"><button class="btn primary">Send ↑</button></form></div></div></section>
+/* ───────── navigation ───────── */
+const IC={overview:'M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z',inbox:'M4 5h16v14H4zM4 13h4l2 3h4l2-3h4',
+leads:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+automations:'M6 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM18 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM8.5 5.5H13a3 3 0 0 1 3 3v7M6 8v6a3 3 0 0 0 3 3h6',
+templates:'M5 3h10l4 4v14H5zM14 3v5h5M8 13h8M8 17h8',forms:'M6 3h12v18H6zM9 8h6M9 12h6M9 16h3',media:'M3 5h18v14H3zM8 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM21 15l-5-5-9 9',
+team:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9',billing:'M2 5h20v14H2zM2 10h20',
+settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15l1.6 1-2 3.4-1.8-.7a7 7 0 0 1-1.7 1l-.3 1.9h-4l-.3-1.9a7 7 0 0 1-1.7-1l-1.8.7-2-3.4 1.6-1a7 7 0 0 1 0-2l-1.6-1 2-3.4 1.8.7a7 7 0 0 1 1.7-1l.3-1.9h4l.3 1.9a7 7 0 0 1 1.7 1l1.8-.7 2 3.4-1.6 1a7 7 0 0 1 0 2z',
+clients:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6',plans:'M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z',payments:'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'};
+const role=()=>S.me.user.role,perm=k=>S.me.perms[k];
+const owner=()=>role()==='admin'||role()==='client';
+const NAV=[['WORKSPACE',[['overview','Overview',()=>1],['inbox','Inbox',()=>1],['leads','Leads',()=>1],['automations','Automations',()=>perm('automations')],['templates','Templates',()=>perm('templates')],['forms','Forms',()=>perm('forms')],['media','Media library',()=>1]]],
+['ACCOUNT',[['team','Team',()=>owner()],['billing','Billing & plan',()=>role()==='client'],['settings','Settings',()=>1]]],
+['ROOT ADMIN',[['clients','Clients',()=>role()==='admin'],['plans','Plans',()=>role()==='admin'],['payments','Payments',()=>role()==='admin']]]];
+const TITLES={overview:'Workspace overview',inbox:'Inbox',leads:'Leads',automations:'Automations',templates:'Message templates',forms:'Forms studio',media:'Media library',team:'Team',billing:'Billing & plan',settings:'Settings',clients:'Clients',plans:'Plans',payments:'Payments'};
+function renderNav(){
+  $('nav').innerHTML=NAV.map(([g,items])=>{const vis=items.filter(i=>i[2]());if(!vis.length)return'';
+    return `<div class="nav-label">${g}</div>`+vis.map(([id,l])=>`<button class="nav-link ${S.page===id?'active':''}" onclick="go('${id}')"><svg viewBox="0 0 24 24"><path d="${IC[id]}"/></svg>${l}</button>`).join('')}).join('')}
+function clearTimers(){S.timers.forEach(clearInterval);S.timers=[]}
+function planBlocked(){if(S.me&&S.page!=='billing'&&role()==='client')go('billing');else if(S.me&&role()==='member')memberBlocked()}
+function memberBlocked(){view('<div class="empty-state"><b>Subscription inactive</b>Your account owner needs to renew the plan before you can continue.</div>')}
+async function go(page){
+  clearTimers();
+  const allowed=NAV.flatMap(g=>g[1]).find(i=>i[0]===page&&i[2]());if(!allowed)page='overview';
+  if(!S.me.plan.active&&role()!=='admin'){if(role()==='client')page='billing';else{S.page=page;renderNav();return memberBlocked()}}
+  S.page=page;$('pageTitle').textContent=TITLES[page];renderNav();loading();$('content').scrollTop=0;
+  try{await PAGES[page]()}catch(e){if(e.status!==402)view(`<div class="empty-state"><b>Something went wrong</b>${esc(e.message)}</div>`)}}
+function renderBanner(){
+  const p=S.me.plan,b=$('banner');b.innerHTML='';const pill=$('planPill');
+  if(role()==='admin'){pill.style.display='none';return}
+  pill.style.display='';pill.textContent=p.active?`${p.name} · ${p.days_left}d left`:'No active plan';
+  if(!p.active&&role()==='client')b.innerHTML=`<div class="banner bad"><b>${p.expired?'Your subscription has expired.':'Choose a plan to start.'}</b> <span>Subscribe to unlock your inbox, automations, forms and templates.</span></div>`;
+  else if(p.active&&p.days_left<=7&&role()==='client')b.innerHTML=`<div class="banner warn"><b>Your ${esc(p.name)} plan ends in ${p.days_left} day${p.days_left===1?'':'s'}.</b> <button class="btn sm primary" onclick="go('billing')">Renew now</button></div>`}
+async function loadMe(){S.me=await api('/api/me');$('uName').textContent=S.me.user.name;$('uRole').textContent=S.me.user.role==='admin'?'Root admin':S.me.user.role==='client'?'Client':'Team member';$('uAv').textContent=(S.me.user.name||'A')[0].toUpperCase();renderBanner()}
+async function loadNumbers(){
+  if(!S.me.plan.active&&role()!=='admin'){S.numbers=[];return}
+  S.numbers=(await api('/api/numbers')).numbers;
+  const saved=Number(localStorage.getItem('dm_nid'));
+  S.nid=S.numbers.find(n=>n.id===S.nid)?S.nid:(S.numbers.find(n=>n.id===saved)?saved:(S.numbers[0]||{}).id||null);
+  $('numSel').innerHTML=S.numbers.length?S.numbers.map(n=>`<option value="${n.id}" ${n.id===S.nid?'selected':''}>${esc(n.display_phone||n.phone_number_id)}${n.verified_name?' · '+esc(n.verified_name):''}</option>`).join(''):'<option value="">No number connected</option>'}
+function setNumber(v){S.nid=Number(v)||null;localStorage.setItem('dm_nid',S.nid||'');go(S.page)}
+const emptyNumber=()=>`<div class="empty-state"><b>No WhatsApp number yet</b>${owner()?'Connect your first number to start.<br><br><button class="btn primary" onclick="go(\'settings\')">Connect a number →</button>':'Ask your account owner to assign a number to you.'}</div>`;
+const PAGES={};
 
-<section class="page" id="page-leads"><div class="section-head"><div><span class="eyebrow">CONTACT DATABASE</span><h1>Leads</h1><p>Every new WhatsApp sender is saved against the number they contacted.</p></div><input class="search-input" id="leadSearch" placeholder="Search name or phone…" oninput="loadLeads()"></div><div class="panel table-wrap"><table><thead><tr><th>CONTACT</th><th>PHONE</th><th>WHATSAPP NUMBER</th><th>STATUS</th><th>FORM DETAILS</th><th>CREATED</th></tr></thead><tbody id="leadRows"><tr><td colspan="6" class="empty">No leads yet.</td></tr></tbody></table></div></section>
+/* ───────── overview ───────── */
+PAGES.overview=async()=>{
+  const s=await api('/api/stats');const max=Math.max(1,...s.series.map(x=>x.in+x.out));
+  view(`<div class="section-head"><div><span class="eyebrow">YOUR MESSAGING WORKSPACE</span><h1>Hello, ${esc(S.me.user.name.split(' ')[0])}.</h1><p>Everything happening on your connected WhatsApp numbers.</p></div>${owner()?'<button class="btn primary" onclick="go(\'settings\')">＋ Connect number</button>':''}</div>
+  <div class="stats"><div class="stat"><small>TOTAL LEADS</small><strong>${s.leads}</strong><span>Across your numbers</span></div><div class="stat"><small>CONVERSATIONS</small><strong>${s.conversations}</strong><span>Saved threads</span></div>
+  <div class="stat"><small>MESSAGES · 7 DAYS</small><strong>${s.messages_7d}</strong><span>Incoming and outgoing</span></div><div class="stat"><small>ACTIVE AUTOMATIONS</small><strong>${s.automations}</strong><span>${s.numbers} number${s.numbers===1?'':'s'} connected</span></div></div>
+  <div class="grid2"><div class="panel"><h3>Message activity</h3><div class="sub">Last 7 days</div>
+   <div class="bars">${s.series.map(d=>`<div class="bar"><i style="height:${d.out/max*100}%" title="${d.out} sent"></i><i class="o" style="height:${d.in/max*100}%" title="${d.in} received"></i><small>${new Date(d.date).toLocaleDateString([], {weekday:'short'})}</small></div>`).join('')}</div>
+   <div class="legend"><span><b style="background:#2563eb"></b>Sent</span><span><b style="background:#bcd3f7"></b>Received</span></div></div>
+  <div class="panel"><h3>Recent conversations</h3><div class="sub">Tap to open</div><div class="recent">${s.recent.length?s.recent.map(r=>`<div class="recent-i" onclick="openChat(${r.lead_id},${r.number_id})"><span class="avatar">${esc((r.name||'?')[0].toUpperCase())}</span><div><b>${esc(r.name||r.phone)}</b><small>${esc(r.body||'')}</small></div><small>${ago(r.created_at)}</small></div>`).join(''):'<div class="empty-state">No conversations yet.</div>'}</div></div></div>
+  ${owner()?`<div class="panel"><h3>Quick actions</h3><div class="sub">Set up your workspace</div><div class="row3">
+   <button class="quick" onclick="go('automations')"><span class="qi">⚡</span><span><b>Build an automation</b><small>Buttons that lead to different replies</small></span></button>
+   <button class="quick" onclick="go('templates')"><span class="qi">▤</span><span><b>Create a template</b><small>With image, video or file header</small></span></button>
+   <button class="quick" onclick="go('team')"><span class="qi">👥</span><span><b>Invite a team member</b><small>Give access to one number</small></span></button></div></div>`:''}`)};
+function openChat(leadId,numberId){if(numberId&&numberId!==S.nid){S.nid=numberId;localStorage.setItem('dm_nid',numberId);$('numSel').value=numberId}IB.pending=leadId;go('inbox')}
 
-<section class="page" id="page-automations"><div class="section-head"><div><span class="eyebrow">AUTOMATION STUDIO</span><h1>Automations</h1><p>Each flow belongs to the selected WhatsApp number. Build replies with message, image and form nodes.</p></div><button class="btn primary" onclick="newFlow()">＋ New automation</button></div><div id="flowList" class="flow-list"></div>
-<div id="flowEditor" class="panel flow-editor hidden"><div class="editor-top"><div><span class="eyebrow">FLOW BUILDER</span><h2 id="flowEditorTitle">New automation</h2></div><div class="editor-actions"><button class="btn light" onclick="closeFlow()">Cancel</button><button class="btn primary" onclick="saveFlow()">Save flow</button></div></div>
-<div class="flow-settings"><label>Automation name<input id="flowName" value="Welcome flow"></label><label>Trigger<select id="flowTrigger" onchange="toggleKeyword()"><option value="keyword">When message contains keyword</option><option value="first_after_24h">First message after 24 hours</option></select></label><label id="keywordWrap">Keyword<input id="flowKeyword" placeholder="e.g. demo"></label><label class="check-label"><input type="checkbox" id="flowEnabled" checked> Enabled</label></div>
-<div class="builder"><div class="node-palette"><b>ADD NODE</b><div class="draggable" draggable="true" data-node="message">＋ Message</div><div class="draggable" draggable="true" data-node="image">▧ Image + message</div><div class="draggable" draggable="true" data-node="form">▤ Form request</div><small>Drag a node into the canvas. Connect nodes using the Next node field.</small></div><div id="flowCanvas" class="flow-canvas"><div class="trigger-node"><b>⚡ Incoming message</b><small>Automation trigger</small><span id="triggerNext">Connect to your first node ↓</span></div><div id="nodesArea"></div><div id="dropHint">Drop a node here to build your flow</div></div></div></div></section>
+/* ───────── media picker ───────── */
+const kindIcon={image:'🖼',video:'🎬',document:'📄'};
+const mediaThumb=m=>m.kind==='image'?`<img src="${m.url}" alt="">`:m.kind==='video'?`<video src="${m.url}" muted></video>`:kindIcon.document;
+async function uploadFile(file){const fd=new FormData();fd.append('file',file);return (await api('/api/media',{method:'POST',body:fd})).media}
+async function pickMedia(kind,cb){
+  const el=modal({title:kind?`Choose a ${kind}`:'Choose a file',wide:true,body:`<div class="flex mt"><label class="btn primary sm">⬆ Upload new<input type="file" hidden id="pmUp"></label><span style="font-size:12px;color:var(--dim)">Images ≤5 MB · videos/documents ≤16 MB</span></div><div class="mgrid mt" id="pmGrid"></div>`});
+  const load=async()=>{const d=await api('/api/media'+(kind?'?kind='+kind:''));d.media.forEach(m=>S.mediaMap[m.id]=m);
+    el.querySelector('#pmGrid').innerHTML=d.media.length?d.media.map(m=>`<div class="mi" data-id="${m.id}"><div class="th">${mediaThumb(m)}</div><div class="in"><b>${esc(m.filename)}</b><small>${m.kind}</small></div></div>`).join(''):'<div class="empty-state" style="grid-column:1/-1">Nothing here yet. Upload a file.</div>';
+    el.querySelectorAll('.mi').forEach(x=>x.onclick=()=>{const m=S.mediaMap[x.dataset.id];closeModal(el);cb(m)})};
+  el.querySelector('#pmUp').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;const m=await uploadFile(f);S.mediaMap[m.id]=m;if(kind&&m.kind!==kind){toast(`That file is a ${m.kind}, not a ${kind}`,'err');load();return}closeModal(el);cb(m)}catch(x){toast(x.message,'err')}};
+  load()}
 
-<section class="page" id="page-templates"><div class="section-head"><div><span class="eyebrow">META WHATSAPP</span><h1>Message templates</h1><p>Sync approved templates from Meta and submit new templates for review.</p></div><div><button class="btn light" onclick="syncTemplates()">↻ Sync Meta</button> <button class="btn primary" onclick="openTemplateForm()">＋ Create template</button></div></div><div id="templateList" class="template-grid"></div><div id="templateForm" class="panel hidden"><h3>Submit a template</h3><div class="form-grid"><label>Template name<input id="tplName" placeholder="welcome_message"></label><label>Language<input id="tplLang" value="en_US"></label><label>Category<select id="tplCategory"><option>UTILITY</option><option>MARKETING</option><option>AUTHENTICATION</option></select></label><label class="wide">Body<textarea id="tplBody" rows="4" placeholder="Hello {{1}}, thanks for contacting us."></textarea></label><label>Footer (optional)<input id="tplFooter"></label></div><button class="btn primary" onclick="submitTemplate()">Submit to Meta</button></div></section>
+/* ───────── inbox ───────── */
+const IB={lead:null,pending:null,sig:'',wkey:'',tpl:null};
+PAGES.inbox=async()=>{
+  if(!S.nid)return view(emptyNumber());IB.lead=null;IB.sig='';IB.wkey='';
+  view(`<div class="section-head"><div><span class="eyebrow">CUSTOMER MESSAGES</span><h1>Inbox</h1><p>Conversations for the selected number. Refreshes automatically.</p></div></div>
+  <div class="inbox panel"><div class="conv"><div class="conv-tools"><input class="f" id="ibq" placeholder="Search name or phone…" oninput="ibLoad()"></div><div id="convs"></div></div>
+  <div class="thread" id="thread"><div class="empty-state" style="margin:auto"><b>Select a conversation</b>Messages appear here.</div></div></div>`);
+  await ibLoad();if(IB.pending){const id=IB.pending;IB.pending=null;ibOpen(id)}
+  S.timers.push(setInterval(()=>{ibLoad(true);if(IB.lead)ibRefresh(true)},7000))};
+async function ibLoad(){
+  const q=$('ibq')?.value||'';const d=await api(`/api/inbox?number_id=${S.nid}&q=${encodeURIComponent(q)}`);const box=$('convs');if(!box)return;
+  box.innerHTML=d.conversations.length?d.conversations.map(c=>`<div class="conv-i ${c.lead_id===IB.lead?'on':''}" onclick="ibOpen(${c.lead_id})"><span class="avatar">${esc((c.name||'?')[0].toUpperCase())}</span><div><div class="t"><b>${esc(c.name||c.phone)}</b><small>${ago(c.last_at)}</small></div><p>${c.last_direction==='out'?'✓ ':''}${esc(c.last_message||'No messages')}</p></div><span class="dot ${c.window_open?'':'off'}" title="${c.window_open?'24h window open':'24h window closed'}"></span></div>`).join(''):'<div class="empty-state">No conversations yet.<br>They appear when customers message you.</div>'}
+function ibOpen(id){IB.lead=id;IB.sig='';IB.wkey='';
+  $('thread').innerHTML=`<div class="th-head" id="thHead"></div><div class="thmsgs" id="thMsgs"></div><div id="thFoot"></div>`;ibRefresh(false);ibLoad()}
+async function ibRefresh(silent){
+  const id=IB.lead;if(!id)return;let d;try{d=await api(`/api/inbox/${id}/messages`)}catch(e){if(!silent)toast(e.message,'err');return}
+  if(IB.lead!==id)return;const L=d.lead;
+  $('thHead').innerHTML=`<div class="who"><span class="avatar">${esc((L.name||'?')[0].toUpperCase())}</span><div><b>${esc(L.name||L.phone)}</b><small>+${esc(L.phone)} ${d.coexistence?'· 📱 Coexistence':''}</small></div></div>
+   <span class="badge ${d.window_open?'green':'amber'}">${d.window_open?'24h window open':'Window closed'}</span>
+   <select class="f" style="width:130px" onchange="leadStatus(${L.id},this.value)">${['new','contacted','qualified','won','lost'].map(s=>`<option ${L.status===s?'selected':''}>${s}</option>`).join('')}</select>
+   <button class="btn sm light" onclick="openTplSend(${L.id})">📋 Template</button>`;
+  const sig=d.messages.length+'|'+(d.messages.at(-1)?.id||'')+'|'+d.messages.map(m=>m.status).join('');
+  if(sig!==IB.sig){IB.sig=sig;const box=$('thMsgs');const near=box.scrollHeight-box.scrollTop-box.clientHeight<140;let last='';
+    box.innerHTML=d.messages.length?d.messages.map(m=>{const day=new Date(m.created_at).toDateString();let sep='';if(day!==last){last=day;sep=`<div class="dayline"><span>${ago(m.created_at)==='Yesterday'||new Date().toDateString()===day?(new Date().toDateString()===day?'Today':'Yesterday'):new Date(m.created_at).toLocaleDateString([], {day:'numeric',month:'long'})}</span></div>`}return sep+bubble(m)}).join(''):'<div class="empty-state" style="margin:auto">No messages yet.</div>';
+    if(near||!silent)box.scrollTop=box.scrollHeight}
+  const wkey=String(d.window_open);if(wkey!==IB.wkey){IB.wkey=wkey;
+    $('thFoot').innerHTML=d.window_open?`<div class="composer"><button class="icon-btn" title="Attach a file from your library" onclick="ibAttach()">📎</button><input id="ibText" placeholder="Type a message…" onkeydown="if(event.key==='Enter')ibSend()"><button class="btn primary" onclick="ibSend()">Send ↑</button></div>`
+     :`<div class="closed"><span>⚠ The 24-hour reply window is closed. WhatsApp only allows an approved <b>template</b> message now.</span><button class="btn sm wa" onclick="openTplSend(${L.id})">Send template</button></div>`}}
+function bubble(m){let media='';
+  if(m.media_src){if(m.type==='image')media=`<a href="${m.media_src}" target="_blank"><img src="${m.media_src}" alt=""></a>`;else if(m.type==='video')media=`<video controls src="${m.media_src}"></video>`;else media=`<a class="doc" href="${m.media_src}" target="_blank">📎 Open file</a>`}
+  const showBody=m.body&&!(media&&/^\[\w+\]$/.test(m.body));
+  const tick=m.direction==='out'?(m.status==='read'?'<span class="rd">✓✓</span>':m.status==='delivered'?'✓✓':m.status==='failed'?'<span style="color:var(--red)">! failed</span>':'✓'):'';
+  return `<div class="msg ${m.direction}">${media}${showBody?esc(m.body):''}<div class="meta">${m.from_app?'📱 phone app · ':''}${fmtT(m.created_at)} ${tick}</div></div>`}
+async function ibSend(){const i=$('ibText'),t=i.value.trim();if(!t)return;i.value='';try{await api(`/api/inbox/${IB.lead}/send`,{method:'POST',body:{type:'text',body:t}});IB.sig='';ibRefresh(false);ibLoad()}catch(e){i.value=t;toast(e.message,'err');if(e.data?.code==='window_closed'){IB.wkey='';ibRefresh(true)}}}
+function ibAttach(){pickMedia(null,m=>{const cap=($('ibText')?.value||'').trim();modal({title:'Send file',body:`<div class="mgrid mt" style="grid-template-columns:140px"><div class="mi"><div class="th">${mediaThumb(m)}</div><div class="in"><b>${esc(m.filename)}</b></div></div></div><label class="fl">Caption (optional)</label><input class="f" id="cap" value="${esc(cap)}">`,
+  buttons:[['Cancel','light',e=>closeModal(e)],['Send','primary',async e=>{await api(`/api/inbox/${IB.lead}/send`,{method:'POST',body:{type:'media',media_id:m.id,body:$('cap').value}});closeModal(e);if($('ibText'))$('ibText').value='';IB.sig='';ibRefresh(false);ibLoad()}]]})})}
+async function leadStatus(id,s){try{await api('/api/leads/'+id,{method:'PATCH',body:{status:s}});toast('Status updated','ok')}catch(e){toast(e.message,'err')}}
+async function openTplSend(leadId){
+  const d=await api('/api/templates?number_id='+S.nid);const list=d.templates.filter(t=>t.status==='APPROVED');
+  if(!list.length)return toast('No approved templates yet. Create one in Templates and wait for Meta approval.','err');
+  S.tplList=list;let hm=null;
+  const el=modal({title:'Send template message',wide:true,body:`<label class="fl">Template</label><select class="f" id="tsSel"><option value="">— Select —</option>${list.map(t=>`<option value="${t.id}">${esc(t.meta_name)} · ${esc(t.language)}</option>`).join('')}</select><div id="tsBody"></div>`,
+   buttons:[['Cancel','light',e=>closeModal(e)],['Send template','wa',async e=>{const t=S.tplList.find(x=>x.id==$('tsSel').value);if(!t)throw new Error('Choose a template');
+     const vars=[...e.querySelectorAll('.tsv')].map(i=>i.value.trim());if(vars.some(v=>!v))throw new Error('Fill in every variable');
+     await api(`/api/inbox/${leadId}/send`,{method:'POST',body:{type:'template',template_id:t.id,variables:vars,header_media_id:hm?hm.id:(t.header_media?t.header_media.id:null)}});
+     closeModal(e);toast('Template sent','ok');IB.sig='';IB.wkey='';ibRefresh(false);ibLoad()}]]});
+  el.querySelector('#tsSel').onchange=ev=>{const t=S.tplList.find(x=>x.id==ev.target.value);hm=null;const b=el.querySelector('#tsBody');if(!t){b.innerHTML='';return}
+    let h=`<div class="tplbody mt">${esc(t.body_text)}</div>`;
+    if(['image','video','document'].includes(t.header_format))h+=`<label class="fl">Header ${t.header_format}</label><div class="attach"><span id="tsHm">${t.header_media?esc(t.header_media.filename)+' (saved with template)':'No file selected'}</span><button class="btn sm light" id="tsPick">Choose from library</button></div>`;
+    for(let i=1;i<=t.body_vars;i++)h+=`<label class="fl">Variable {{${i}}} <small>supports {name} {first_name} {phone}</small></label><input class="f tsv" placeholder="e.g. {first_name}">`;
+    b.innerHTML=h;const p=el.querySelector('#tsPick');if(p)p.onclick=()=>pickMedia(t.header_format,m=>{hm=m;el.querySelector('#tsHm').textContent=m.filename})}}
 
-<section class="page" id="page-forms"><div id="formsListWrap"><div class="section-head"><div><span class="eyebrow">WHATSAPP FLOWS</span><h1>Forms Studio</h1><p>Design native WhatsApp forms here, then create and publish them directly to Meta.</p></div><button class="btn primary" onclick="addFormField()">＋ Create form</button></div><div class="studio-info"><b>Build once. Collect answers inside WhatsApp.</b><p>Choose supported fields, configure options and publish your Flow. Customers complete it without leaving their WhatsApp chat.</p></div><div id="studioFormsList" class="studio-forms-grid"><div class="studio-empty">Loading your forms…</div></div></div>
-<div id="formsEditor" class="panel studio-editor hidden"><div class="editor-top"><div><span class="eyebrow">NATIVE WHATSAPP FORM</span><h2>Form designer</h2></div><div class="editor-actions"><button class="btn light" onclick="closeStudioForms()">Cancel</button><button id="studioCreateBtn" class="btn primary" onclick="saveStudioForm()">Create WhatsApp Flow</button></div></div>
-<div class="studio-config"><label>Form name<input id="studioFormName" value="New lead form" maxlength="200"></label><label>Screen heading<input id="studioScreenTitle" value="A few details" maxlength="80"></label><label>Meta category<select id="studioCategory"><option value="LEAD_GENERATION">Lead generation</option><option value="APPOINTMENT_BOOKING">Appointment booking</option><option value="CONTACT_US">Contact us</option><option value="SIGN_UP">Sign up</option><option value="SURVEY">Survey</option><option value="CUSTOMER_SUPPORT">Customer support</option><option value="OTHER">Other</option></select></label><label>Button text<input id="studioCta" value="Continue" maxlength="20"></label><label class="wide">Message before form<textarea id="studioPrompt" rows="2">Please share a few details so we can help you.</textarea></label></div>
-<div class="studio-builder-head"><div><h3>Form fields</h3><p>Add the questions customers will answer inside WhatsApp.</p></div></div><div class="studio-add-fields"><button class="btn light" data-add-field="text">＋ Short text</button><button class="btn light" data-add-field="email">＋ Email</button><button class="btn light" data-add-field="phone">＋ Phone</button><button class="btn light" data-add-field="number">＋ Number</button><button class="btn light" data-add-field="date">＋ Date</button><button class="btn light" data-add-field="dropdown">＋ Dropdown</button><button class="btn light" data-add-field="radio">＋ Single choice</button><button class="btn light" data-add-field="checkbox">＋ Multiple choice</button></div><div id="studioFieldList" class="studio-field-list"></div>
-<div class="studio-footer-note">Meta creates the Flow as a draft first. Review the validation result, then publish it. Published Meta Flows cannot be edited; create a new version for changes.</div></div></section>
+/* ───────── leads ───────── */
+PAGES.leads=async()=>{
+  view(`<div class="section-head"><div><span class="eyebrow">CONTACT DATABASE</span><h1>Leads</h1><p>Everyone who messaged your numbers, with status and form answers.</p></div><div class="flex"><select class="f" id="lst" style="width:140px" onchange="leadsLoad()"><option value="">All status</option>${['new','contacted','qualified','won','lost'].map(s=>`<option>${s}</option>`).join('')}</select><input class="f" id="lq" style="width:210px" placeholder="Search…" oninput="clearTimeout(window._lt);window._lt=setTimeout(leadsLoad,300)"><a class="btn light" href="/api/leads/export">⬇ CSV</a></div></div><div class="table-wrap"><table><thead><tr><th>CONTACT</th><th>PHONE</th><th>NUMBER</th><th>STATUS</th><th>FORM ANSWERS</th><th>ADDED</th><th></th></tr></thead><tbody id="lrows"></tbody></table></div>`);leadsLoad()};
+async function leadsLoad(){
+  const d=await api(`/api/leads?q=${encodeURIComponent($('lq').value)}&status=${$('lst').value}`);
+  $('lrows').innerHTML=d.leads.length?d.leads.map(l=>`<tr><td><div class="who"><span class="avatar">${esc((l.name||'?')[0].toUpperCase())}</span><div><b>${esc(l.name)}</b><small>${esc(l.email||'')}</small></div></div></td><td>+${esc(l.phone)}</td><td>${esc(l.display_phone)}</td>
+   <td><select class="f" style="width:120px;padding:6px 8px" onchange="leadStatus(${l.id},this.value)">${['new','contacted','qualified','won','lost'].map(s=>`<option ${l.status===s?'selected':''}>${s}</option>`).join('')}</select></td>
+   <td>${Object.entries(l.form_data).map(([k,v])=>`<span class="chip">${esc(k.replace(/_/g,' '))}: ${esc(Array.isArray(v)?v.join(', '):v)}</span>`).join('')||'<span style="color:var(--dim)">—</span>'}</td><td>${fmtD(l.created_at)}</td>
+   <td><button class="btn sm primary" onclick="openChat(${l.id},${l.number_id})">Open chat</button></td></tr>`).join(''):'<tr><td colspan="7"><div class="empty-state">No leads yet.</div></td></tr>'}
 
-<section class="page" id="page-settings"><div class="section-head"><div><span class="eyebrow">ACCOUNT CONNECTIONS</span><h1>Settings</h1><p>Connect multiple WhatsApp numbers through Meta Embedded Signup. Each number gets its own inbox and automation scope.</p></div></div><div class="panel connect-panel"><div class="connect-icon">◎</div><div class="connect-copy"><h3>Connect a WhatsApp Business number</h3><p>Meta will open a secure popup. Complete the business and phone number steps to add a number to DMvora.</p><small id="metaStatus">Checking Meta configuration…</small></div><button id="connectBtn" class="btn primary" onclick="connectMeta()">Continue with Meta ↗</button></div><div class="panel"><div class="panel-head"><div><h3>Connected numbers</h3><p>Choose a number from the sidebar to switch its inbox and automations.</p></div><button class="btn light" onclick="loadNumbers()">↻ Refresh</button></div><div id="numberCards" class="number-cards empty">No WhatsApp numbers connected.</div></div><div class="notice"><b>Webhook architecture</b><p>Meta sends events to PravahAI's existing app-level webhook. PravahAI securely forwards the original event to DMvora; DMvora stores only events whose <code>phone_number_id</code> matches a connected number.</p></div></section>
-</div><div id="toast" class="toast"></div></main></div></body></html>
+/* ───────── automations ───────── */
+let FE=null;
+const TRIG={keyword:'Message contains a keyword',first_message:"Customer's very first message",first_after_24h:'First message after 24 hours',any_message:'Any message (fallback when nothing else matches)'};
+const trigText=a=>a.trigger_type==='keyword'?`Keyword: ${a.keyword} (${a.match_type||'contains'})`:TRIG[a.trigger_type];
+PAGES.automations=async()=>{
+  if(!S.nid)return view(emptyNumber());
+  const d=await api('/api/automations?number_id='+S.nid);S.autos=d.automations;
+  view(`<div class="section-head"><div><span class="eyebrow">AUTOMATION STUDIO</span><h1>Automations</h1><p>Reply automatically with messages, files, templates and forms. Add buttons so each choice leads to a different response.</p></div><button class="btn primary" onclick="autoEdit()">＋ New automation</button></div>
+  <div class="cards">${d.automations.length?d.automations.map(a=>`<div class="card"><div class="top"><h4>${esc(a.name)}</h4><label class="switch"><input type="checkbox" ${a.enabled?'checked':''} onchange="autoToggle(${a.id})"><i></i></label></div>
+   <p>⚡ ${esc(trigText(a))}</p><p>${a.graph.nodes.length} step${a.graph.nodes.length===1?'':'s'} · ${a.graph.nodes.reduce((n,x)=>n+((x.data.buttons||[]).length),0)} button choices</p>
+   <div class="acts"><button class="btn sm primary" onclick="autoEdit(${a.id})">Edit</button><button class="btn sm danger" onclick="autoDel(${a.id})">Delete</button></div></div>`).join(''):'<div class="empty-state" style="grid-column:1/-1"><b>No automations yet</b>Create one to welcome customers or answer common questions.</div>'}</div>`)};
+async function autoToggle(id){try{await api(`/api/automations/${id}/toggle`,{method:'POST',body:{}});toast('Updated','ok')}catch(e){toast(e.message,'err')}}
+function autoDel(id){confirmBox('Delete this automation?',async()=>{await api('/api/automations/'+id,{method:'DELETE'});PAGES.automations()},'Delete')}
+async function autoEdit(id){
+  const [t,f,m]=await Promise.all([api('/api/templates?number_id='+S.nid),api('/api/forms'),api('/api/media')]);
+  S.tpls=t.templates.filter(x=>x.status==='APPROVED');S.forms=f.forms.filter(x=>x.meta_flow_id&&x.status==='PUBLISHED'&&x.number_id===S.nid);m.media.forEach(x=>S.mediaMap[x.id]=x);
+  const a=id?S.autos.find(x=>x.id===id):null;
+  FE=a?{id:a.id,name:a.name,trigger:a.trigger_type,keyword:a.keyword,match:a.match_type||'contains',enabled:!!a.enabled,start:a.graph.start,nodes:JSON.parse(JSON.stringify(a.graph.nodes))}
+     :{id:null,name:'Welcome flow',trigger:'keyword',keyword:'',match:'contains',enabled:true,start:'',nodes:[]};
+  if(!FE.nodes.length)addStep('message',true);
+  renderEditor()}
+const N=id=>FE.nodes.find(n=>n.id===id);
+function newId(){let i=FE.nodes.length+1;while(FE.nodes.some(n=>n.id==='s'+i))i++;return 's'+i}
+function addStep(type,silent){const id=newId();const data={message:{body:'',media_id:null,buttons:[],next_id:''},template:{template_id:'',variables:[],next_id:''},form:{form_id:''},status:{status:'qualified',body:'',next_id:''}}[type];
+  FE.nodes.push({id,type,title:{message:'Message',template:'Template message',form:'Collect form',status:'Set lead status'}[type],data});if(!FE.start)FE.start=id;if(!silent)renderSteps()}
+function renderEditor(){
+  view(`<div class="section-head"><div><span class="eyebrow">${FE.id?'EDIT':'NEW'} AUTOMATION</span><h1>${esc(FE.name||'Automation')}</h1></div><div class="flex"><button class="btn light" onclick="PAGES.automations()">Cancel</button><button class="btn primary" onclick="autoSave()">Save automation</button></div></div>
+  <div class="help"><b>How it works:</b> pick what starts the automation, then build steps. A <b>message step with buttons</b> waits for the customer's tap, and each button can lead to its own step, a reply, a link or a form. Steps without buttons continue to the step you choose, or end.</div>
+  <div class="panel"><h3>1 · When should it run?</h3><div class="row2"><div><label class="fl">Name</label><input class="f" value="${esc(FE.name)}" oninput="FE.name=this.value"></div>
+   <div><label class="fl">Trigger</label><select class="f" onchange="FE.trigger=this.value;renderEditor()">${Object.entries(TRIG).map(([k,v])=>`<option value="${k}" ${FE.trigger===k?'selected':''}>${v}</option>`).join('')}</select></div></div>
+   ${FE.trigger==='keyword'?`<div class="row2"><div><label class="fl">Keywords <small>comma separated</small></label><input class="f" value="${esc(FE.keyword)}" placeholder="price, demo, hello" oninput="FE.keyword=this.value"></div>
+   <div><label class="fl">Match</label><select class="f" onchange="FE.match=this.value"><option value="contains" ${FE.match==='contains'?'selected':''}>Message contains keyword</option><option value="exact" ${FE.match==='exact'?'selected':''}>Message is exactly the keyword</option><option value="starts" ${FE.match==='starts'?'selected':''}>Message starts with keyword</option></select></div></div>`:''}
+   <div class="check"><label class="switch"><input type="checkbox" ${FE.enabled?'checked':''} onchange="FE.enabled=this.checked"><i></i></label> Enabled</div>
+   <label class="fl">First step to send</label><select class="f" id="startSel" onchange="FE.start=this.value"></select></div>
+  <h3 style="margin:6px 0 12px;font:700 15px 'Space Grotesk'">2 · Steps</h3><div id="steps"></div>
+  <div class="addbar"><b>ADD STEP</b><button class="btn sm light" onclick="addStep('message')">💬 Message</button><button class="btn sm light" onclick="addStep('template')">📋 Template</button><button class="btn sm light" onclick="addStep('form')">▤ Form</button><button class="btn sm light" onclick="addStep('status')">🏷 Set lead status</button></div>`);renderSteps()}
+const stepOpts=(sel,ex)=>'<option value="">— end here —</option>'+FE.nodes.map((n,i)=>n.id===ex?'':`<option value="${n.id}" ${sel===n.id?'selected':''}>Step ${i+1} · ${esc(n.title||n.type)}</option>`).join('');
+const stepLabel=id=>{const i=FE.nodes.findIndex(n=>n.id===id);return i<0?'':`Step ${i+1}`};
+function renderSteps(){
+  if(!N(FE.start))FE.start=FE.nodes[0]?.id||'';
+  const ss=$('startSel');if(ss)ss.innerHTML=FE.nodes.map((n,i)=>`<option value="${n.id}" ${FE.start===n.id?'selected':''}>Step ${i+1} · ${esc(n.title||n.type)}</option>`).join('');
+  $('steps').innerHTML=FE.nodes.map((n,i)=>`<div class="step"><div class="step-head"><span class="step-no">${i+1}</span><input value="${esc(n.title)}" placeholder="Step name" oninput="N('${n.id}').title=this.value"><span class="badge blue">${n.type}</span>
+   <button class="icon-btn" onclick="stepMove(${i},-1)">↑</button><button class="icon-btn" onclick="stepMove(${i},1)">↓</button><button class="icon-btn" onclick="stepDel('${n.id}')">✕</button></div><div class="step-body"><div>${stepBody(n)}</div><div class="pvwrap" id="pv-${n.id}">${preview(n)}</div></div></div>`).join('')}
+function stepBody(n){const d=n.data,id=n.id;
+  if(n.type==='message'){const m=d.media_id&&S.mediaMap[d.media_id];
+    return `<label class="fl">Message text <small>use {first_name}, {name}, {phone}</small></label><textarea class="f" rows="4" maxlength="1024" oninput="N('${id}').data.body=this.value;pv('${id}')">${esc(d.body)}</textarea>
+    <div class="attach"><span>${m?kindIcon[m.kind]+' '+esc(m.filename):'No image, video or file attached'}</span>${m?`<button class="btn sm light" onclick="stepMedia('${id}',null)">Remove</button>`:''}<button class="btn sm light" onclick="stepPick('${id}')">${m?'Change':'Attach file'}</button></div>
+    <label class="fl">Buttons <small>1–3 = quick-reply buttons · 4–10 = tap-to-choose menu (menu can't show a file)</small></label>${(d.buttons||[]).map((b,j)=>btnRow(id,j,b)).join('')}
+    ${(d.buttons||[]).length<10?`<button class="btn sm light" onclick="btnAdd('${id}')">＋ Add button</button>`:''}
+    ${(d.buttons||[]).length?'':`<label class="fl">After sending, continue to</label><select class="f" onchange="N('${id}').data.next_id=this.value">${stepOpts(d.next_id,id)}</select>`}`}
+  if(n.type==='template')return `<label class="fl">Approved template</label><select class="f" onchange="tplPick('${id}',this.value)"><option value="">— Select —</option>${S.tpls.map(t=>`<option value="${t.id}" ${d.template_id==t.id?'selected':''}>${esc(t.meta_name)}</option>`).join('')}</select>
+    ${(()=>{const t=S.tpls.find(x=>x.id==d.template_id);if(!t)return'<div class="help mt">Templates can be sent any time, even after the 24-hour window.</div>';let h='';for(let i=0;i<t.body_vars;i++)h+=`<label class="fl">Variable {{${i+1}}}</label><input class="f" value="${esc((d.variables||[])[i]||'')}" placeholder="{first_name}" oninput="tplVar('${id}',${i},this.value)">`;
+      if(t.header_format&&t.header_format!=='text'&&!t.header_media)h+='<div class="banner warn mt">This template has no header file saved. Set one in Templates first.</div>';return h})()}
+    <label class="fl">After sending, continue to</label><select class="f" onchange="N('${id}').data.next_id=this.value">${stepOpts(d.next_id,id)}</select>`;
+  if(n.type==='form')return `<label class="fl">Published WhatsApp form</label><select class="f" onchange="N('${id}').data.form_id=Number(this.value)||'';pv('${id}')"><option value="">— Select —</option>${S.forms.map(f=>`<option value="${f.id}" ${d.form_id==f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select>${S.forms.length?'':'<div class="banner warn mt">No published forms for this number yet. Create and publish one in Forms.</div>'}<div class="help mt">The automation pauses here until the customer submits the form. Answers are saved on the lead.</div>`;
+  return `<label class="fl">Set lead status to</label><select class="f" onchange="N('${id}').data.status=this.value">${['new','contacted','qualified','won','lost'].map(s=>`<option ${d.status===s?'selected':''}>${s}</option>`).join('')}</select>
+    <label class="fl">Optional message to send <small>leave empty to change status silently</small></label><textarea class="f" rows="2" oninput="N('${id}').data.body=this.value;pv('${id}')">${esc(d.body||'')}</textarea>
+    <label class="fl">Then continue to</label><select class="f" onchange="N('${id}').data.next_id=this.value">${stepOpts(d.next_id,id)}</select>`}
+const ACT={next:'Go to step',text:'Send a reply',url:'Send a link',form:'Send a form',status:'Mark lead as'};
+function btnRow(id,j,b){let p='';
+  if(b.action==='next')p=`<select onchange="btnSet('${id}',${j},'next_id',this.value)">${stepOpts(b.next_id,id).replace('— end here —','— choose step —')}</select>`;
+  else if(b.action==='text')p=`<input value="${esc(b.text||'')}" placeholder="Reply text" oninput="btnSet('${id}',${j},'text',this.value)">`;
+  else if(b.action==='url')p=`<input value="${esc(b.url||'')}" placeholder="https://…" oninput="btnSet('${id}',${j},'url',this.value)">`;
+  else if(b.action==='form')p=`<select onchange="btnSet('${id}',${j},'form_id',Number(this.value)||0)"><option value="">— form —</option>${S.forms.map(f=>`<option value="${f.id}" ${b.form_id==f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select>`;
+  else p=`<select onchange="btnSet('${id}',${j},'status',this.value)">${['new','contacted','qualified','won','lost'].map(s=>`<option ${b.status===s?'selected':''}>${s}</option>`).join('')}</select>`;
+  return `<div class="btnrow"><input maxlength="20" value="${esc(b.title)}" placeholder="Button text" oninput="btnSet('${id}',${j},'title',this.value)"><select onchange="btnSet('${id}',${j},'action',this.value,true)">${Object.entries(ACT).map(([k,v])=>`<option value="${k}" ${b.action===k?'selected':''}>${v}</option>`).join('')}</select>${p}<button class="icon-btn" onclick="btnDel('${id}',${j})">✕</button></div>`}
+function preview(n){const d=n.data;
+  if(n.type==='message'){const m=d.media_id&&S.mediaMap[d.media_id];return `<div class="wa">${m&&(d.buttons||[]).length<=3?(m.kind==='image'?`<img src="${m.url}">`:`<div class="fileph">${kindIcon[m.kind]} ${esc(m.filename)}</div>`):''}${esc(d.body||'Your message…').replace(/\n/g,'<br>')}</div>${(d.buttons||[]).map(b=>`<div class="wa-btn">${(d.buttons||[]).length>3?'☰ ':''}${esc(b.title||'Button')}</div>`).join('')}`}
+  if(n.type==='template'){const t=S.tpls.find(x=>x.id==d.template_id);return `<div class="wa">${esc(t?t.body_text:'Choose a template').replace(/\n/g,'<br>')}</div>`}
+  if(n.type==='form'){const f=S.forms.find(x=>x.id==d.form_id);return `<div class="wa">${esc(f?f.prompt:'Form message')}</div><div class="wa-btn">▤ ${esc(f?f.cta_text:'Open form')}</div>`}
+  return `<div class="wa" style="background:#f3f8ff">🏷 Lead becomes <b>${esc(d.status)}</b>${d.body?'<br><br>'+esc(d.body):''}</div>`}
+const pv=id=>{const e=$('pv-'+id);if(e)e.innerHTML=preview(N(id))};
+function stepDel(id){if(FE.nodes.length===1)return toast('An automation needs at least one step','err');
+  FE.nodes=FE.nodes.filter(n=>n.id!==id);FE.nodes.forEach(n=>{if(n.data.next_id===id)n.data.next_id='';(n.data.buttons||[]).forEach(b=>{if(b.next_id===id)b.next_id=''})});renderSteps()}
+function stepMove(i,dir){const j=i+dir;if(j<0||j>=FE.nodes.length)return;[FE.nodes[i],FE.nodes[j]]=[FE.nodes[j],FE.nodes[i]];renderSteps()}
+function stepPick(id){const n=N(id);pickMedia(null,m=>{n.data.media_id=m.id;S.mediaMap[m.id]=m;renderSteps()})}
+function stepMedia(id,v){N(id).data.media_id=v;renderSteps()}
+function btnAdd(id){N(id).data.buttons.push({title:'',action:'next',next_id:'',text:'',url:'',form_id:0,status:'qualified'});renderSteps()}
+function btnDel(id,j){N(id).data.buttons.splice(j,1);renderSteps()}
+function btnSet(id,j,k,v,re){N(id).data.buttons[j][k]=v;if(re)renderSteps();else pv(id)}
+function tplPick(id,v){const n=N(id);n.data.template_id=Number(v)||'';n.data.variables=[];renderSteps()}
+function tplVar(id,i,v){const n=N(id);n.data.variables=n.data.variables||[];n.data.variables[i]=v}
+async function autoSave(){
+  const body={id:FE.id,number_id:S.nid,name:FE.name,trigger_type:FE.trigger,keyword:FE.keyword,match_type:FE.match,enabled:FE.enabled,graph:{start:FE.start,nodes:FE.nodes}};
+  await api('/api/automations',{method:'POST',body});toast('Automation saved','ok');PAGES.automations()}
+
+/* ───────── templates ───────── */
+const TM={hm:null,btns:[]};
+PAGES.templates=async()=>{
+  if(!S.nid)return view(emptyNumber());
+  const d=await api('/api/templates?number_id='+S.nid);S.tplAll=d.templates;
+  const st={APPROVED:'green',REJECTED:'red',PENDING:'amber',PAUSED:'red',DISABLED:'red'};
+  view(`<div class="section-head"><div><span class="eyebrow">META WHATSAPP</span><h1>Message templates</h1><p>Create templates with text, image, video or document headers. Header files are saved so you can send them again with one click.</p></div>
+  ${perm('templates')?'<div class="flex"><button class="btn light" onclick="tplSync()">↻ Sync from Meta</button><button class="btn primary" onclick="tplCreate()">＋ Create template</button></div>':''}</div>
+  <div class="cards">${d.templates.length?d.templates.map(t=>`<div class="card"><div class="top"><h4>${esc(t.meta_name)}</h4><span class="badge ${st[t.status]||''}">${esc(t.status)}</span></div>
+   <div><span class="chip">${esc(t.language)}</span><span class="chip">${esc(t.category)}</span>${t.header_format?`<span class="chip">header: ${esc(t.header_format)}</span>`:''}${t.body_vars?`<span class="chip">${t.body_vars} variable${t.body_vars>1?'s':''}</span>`:''}</div>
+   ${t.header_media?`<div class="mgrid" style="grid-template-columns:120px"><div class="mi" style="cursor:default"><div class="th">${mediaThumb(t.header_media)}</div><div class="in"><b>${esc(t.header_media.filename)}</b></div></div></div>`:(['image','video','document'].includes(t.header_format)?'<div class="banner warn" style="margin:0">No header file saved for sending.</div>':'')}
+   <div class="tplbody">${esc(t.body_text)}</div>${t.buttons.length?`<div>${t.buttons.map(b=>`<span class="chip">${esc(b.text)}</span>`).join('')}</div>`:''}
+   ${perm('templates')?`<div class="acts">${['image','video','document'].includes(t.header_format)?`<button class="btn sm light" onclick="tplSetHeader(${t.id},'${t.header_format}')">📎 ${t.header_media?'Change':'Set'} header file</button>`:''}<button class="btn sm danger" onclick="tplDel(${t.id})">Delete</button></div>`:''}</div>`).join(''):'<div class="empty-state" style="grid-column:1/-1"><b>No templates yet</b>Create one, or sync the ones you already have in Meta.</div>'}</div>`)};
+async function tplSync(){const d=await api('/api/templates/sync',{method:'POST',body:{number_id:S.nid}});toast(`Synced ${d.synced} templates`,'ok');PAGES.templates()}
+function tplDel(id){confirmBox('Delete this template from Meta? All languages of this template are removed.',async()=>{await api('/api/templates/'+id,{method:'DELETE'});PAGES.templates()},'Delete')}
+function tplSetHeader(id,kind){pickMedia(kind,async m=>{try{await api(`/api/templates/${id}/header`,{method:'POST',body:{media_id:m.id}});toast('Header file saved','ok');PAGES.templates()}catch(e){toast(e.message,'err')}})}
+function tplCreate(){TM.hm=null;TM.btns=[];
+  const el=modal({title:'Create WhatsApp template',wide:true,body:`<div class="row3"><div><label class="fl">Name</label><input class="f" id="tn" placeholder="diwali_offer" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'_')"></div>
+   <div><label class="fl">Language</label><select class="f" id="tl">${['en_US','en_GB','en','hi','mr','gu','ta','te','kn','ml','bn','pa','ur','es','pt_BR','fr','de','ar','id'].map(x=>`<option>${x}</option>`).join('')}</select></div>
+   <div><label class="fl">Category</label><select class="f" id="tc"><option>MARKETING</option><option>UTILITY</option></select></div></div>
+   <label class="fl">Header</label><select class="f" id="th" onchange="tplHeader()"><option value="none">No header</option><option value="text">Text</option><option value="image">Image</option><option value="video">Video</option><option value="document">Document (PDF)</option></select>
+   <div id="thText" class="hidden"><label class="fl">Header text <small>max 60</small></label><input class="f" id="thTxt" maxlength="60"></div>
+   <div id="thMedia" class="hidden"><label class="fl" id="thMl">Header file</label><div class="attach"><span id="thName">No file chosen</span><button class="btn sm light" onclick="tplPickHeader()">Choose from library / upload</button></div><div style="font-size:11.5px;color:var(--dim);margin-top:6px">Meta reviews this file. It is also saved here so you can send the template with it later. JPG/PNG, MP4 or PDF.</div></div>
+   <label class="fl">Body <small>use {{1}}, {{2}} for variables · max 1024</small></label><textarea class="f" id="tb" rows="5" maxlength="1024" placeholder="Hi {{1}}, our sale is live! Get {{2}} off." oninput="tplEx()"></textarea><div id="tEx"></div>
+   <label class="fl">Footer <small>optional</small></label><input class="f" id="tf" maxlength="60">
+   <label class="fl">Buttons <small>optional</small></label><div id="tBtns"></div><div class="flex"><button class="btn sm light" onclick="tbAdd('QUICK_REPLY')">＋ Quick reply</button><button class="btn sm light" onclick="tbAdd('URL')">＋ Website link</button><button class="btn sm light" onclick="tbAdd('PHONE_NUMBER')">＋ Call number</button></div>`,
+   buttons:[['Cancel','light',e=>closeModal(e)],['Submit to Meta','primary',async e=>{
+     const ex=[...e.querySelectorAll('.tex')].map(i=>i.value.trim());const ht=$('th').value;
+     const r=await api('/api/templates',{method:'POST',body:{number_id:S.nid,name:$('tn').value,language:$('tl').value,category:$('tc').value,header_type:ht,header_text:$('thTxt').value,header_media_id:TM.hm?TM.hm.id:null,body:$('tb').value,body_examples:ex,footer:$('tf').value,buttons:TM.btns}});
+     closeModal(e);toast('Submitted. Status: '+r.status,'ok');PAGES.templates()}]]})}
+function tplHeader(){const t=$('th').value;$('thText').classList.toggle('hidden',t!=='text');$('thMedia').classList.toggle('hidden',!['image','video','document'].includes(t));TM.hm=null;$('thName').textContent='No file chosen'}
+function tplPickHeader(){pickMedia($('th').value,m=>{TM.hm=m;$('thName').textContent=m.filename})}
+function tplEx(){const nums=[...new Set([...$('tb').value.matchAll(/\{\{(\d+)\}\}/g)].map(m=>+m[1]))].sort((a,b)=>a-b);const keep=[...document.querySelectorAll('.tex')].map(i=>i.value);
+  $('tEx').innerHTML=nums.length?`<label class="fl">Sample values <small>Meta needs a realistic example for each variable</small></label>`+nums.map((n,i)=>`<input class="f tex" style="margin-bottom:6px" placeholder="Example for {{${n}}}" value="${esc(keep[i]||'')}">`).join(''):''}
+function tbAdd(type){TM.btns.push({type,title:'',url:'',phone:''});tbRender()}
+function tbRender(){$('tBtns').innerHTML=TM.btns.map((b,i)=>`<div class="btnrow" style="grid-template-columns:140px 1fr 30px;margin-bottom:8px"><input maxlength="25" placeholder="Button text" value="${esc(b.title)}" oninput="TM.btns[${i}].title=this.value">${b.type==='URL'?`<input placeholder="https://…" value="${esc(b.url)}" oninput="TM.btns[${i}].url=this.value">`:b.type==='PHONE_NUMBER'?`<input placeholder="+919876543210" value="${esc(b.phone)}" oninput="TM.btns[${i}].phone=this.value">`:'<span style="font-size:12px;color:var(--dim)">Quick reply</span>'}<button class="icon-btn" onclick="TM.btns.splice(${i},1);tbRender()">✕</button></div>`).join('')}
+
+/* ───────── forms ───────── */
+const FM={fields:[]};
+PAGES.forms=async()=>{
+  const d=await api('/api/forms');const list=d.forms.filter(f=>!S.nid||f.number_id===S.nid);
+  const st={PUBLISHED:'green',DRAFT:'amber',INVALID:'red',ERROR:'red'};
+  view(`<div class="section-head"><div><span class="eyebrow">WHATSAPP FLOWS</span><h1>Forms studio</h1><p>Design native WhatsApp forms. Customers fill them without leaving the chat, and answers are saved on the lead.</p></div>${perm('forms')&&S.nid?'<button class="btn primary" onclick="formNew()">＋ Create form</button>':''}</div>
+  ${S.nid?'':emptyNumber()}<div class="cards">${list.map(f=>`<div class="card"><div class="top"><h4>${esc(f.name)}</h4><span class="badge ${st[f.status]||''}">${esc(f.status)}</span></div><p>${f.fields.length} field${f.fields.length===1?'':'s'} · ${esc(f.category.replace(/_/g,' ').toLowerCase())}</p>
+   <div>${f.fields.map(x=>`<span class="chip">${esc(x.label)}</span>`).join('')}</div>
+   ${perm('forms')?`<div class="acts">${f.status==='DRAFT'?`<button class="btn sm primary" onclick="formPublish(${f.id})">Publish</button>`:''}${f.status!=='PUBLISHED'?`<button class="btn sm danger" onclick="formDel(${f.id})">Delete</button>`:'<span style="font-size:11.5px;color:var(--dim)">Published forms can\'t be edited. Create a new version for changes.</span>'}</div>`:''}</div>`).join('')||(S.nid?'<div class="empty-state" style="grid-column:1/-1"><b>No forms yet</b>Create your first lead form.</div>':'')}</div>`)};
+function formPublish(id){confirmBox('Published forms cannot be edited afterwards. Publish now?',async()=>{await api(`/api/forms/${id}/publish`,{method:'POST',body:{}});toast('Published','ok');PAGES.forms()},'Publish')}
+function formDel(id){confirmBox('Delete this form draft?',async()=>{await api('/api/forms/'+id,{method:'DELETE'});PAGES.forms()},'Delete')}
+function formNew(){FM.fields=[{type:'text',label:'Full name',required:true,options:''},{type:'phone',label:'Phone',required:true,options:''}];
+  modal({title:'Create WhatsApp form',wide:true,body:`<div class="row2"><div><label class="fl">Form name</label><input class="f" id="fn" value="New lead form"></div><div><label class="fl">Screen heading</label><input class="f" id="fs" value="A few details" maxlength="80"></div></div>
+   <div class="row3"><div><label class="fl">Category</label><select class="f" id="fc"><option value="LEAD_GENERATION">Lead generation</option><option value="APPOINTMENT_BOOKING">Appointment booking</option><option value="CONTACT_US">Contact us</option><option value="SIGN_UP">Sign up</option><option value="SURVEY">Survey</option><option value="CUSTOMER_SUPPORT">Customer support</option><option value="OTHER">Other</option></select></div>
+   <div><label class="fl">Button text <small>max 20</small></label><input class="f" id="fb" value="Continue" maxlength="20"></div><div></div></div>
+   <label class="fl">Message sent before the form</label><textarea class="f" id="fp" rows="2">Please share a few details so we can help you.</textarea>
+   <label class="fl">Fields <small>labels max 20 characters</small></label><div id="fflds"></div>
+   <div class="flex">${['text','email','phone','number','date','dropdown','radio','checkbox'].map(t=>`<button class="btn sm light" onclick="fAdd('${t}')">＋ ${{text:'Short text',email:'Email',phone:'Phone',number:'Number',date:'Date',dropdown:'Dropdown',radio:'Single choice',checkbox:'Multiple choice'}[t]}</button>`).join('')}</div>`,
+   buttons:[['Cancel','light',e=>closeModal(e)],['Create WhatsApp Flow','primary',async e=>{
+     try{await api('/api/forms',{method:'POST',body:{number_id:S.nid,name:$('fn').value,screen_title:$('fs').value,category:$('fc').value,cta_text:$('fb').value,prompt:$('fp').value,
+       fields:FM.fields.map(f=>({type:f.type,label:f.label,required:f.required,options:(f.options||'').split('\n').map(x=>x.trim()).filter(Boolean)}))}});
+       closeModal(e);toast('Draft created in Meta. Review, then publish.','ok');PAGES.forms()}
+     catch(x){const ve=x.data?.validation_errors;if(ve&&ve.length)throw new Error(x.message+': '+ve.map(v=>v.message||v.error||JSON.stringify(v)).join('; '));throw x}}]]});fRender()}
+function fAdd(t){FM.fields.push({type:t,label:'',required:false,options:''});fRender()}
+function fRender(){$('fflds').innerHTML=FM.fields.map((f,i)=>`<div class="fld"><select onchange="FM.fields[${i}].type=this.value;fRender()">${['text','email','phone','number','date','dropdown','radio','checkbox'].map(t=>`<option ${f.type===t?'selected':''}>${t}</option>`).join('')}</select>
+  <div><input maxlength="20" placeholder="Question label" value="${esc(f.label)}" oninput="FM.fields[${i}].label=this.value">${['dropdown','radio','checkbox'].includes(f.type)?`<textarea rows="3" placeholder="One option per line" style="margin-top:6px" oninput="FM.fields[${i}].options=this.value">${esc(f.options)}</textarea>`:''}</div>
+  <label class="check" style="padding:6px 0"><input type="checkbox" ${f.required?'checked':''} onchange="FM.fields[${i}].required=this.checked"> Required</label><button class="icon-btn" onclick="FM.fields.splice(${i},1);fRender()">✕</button></div>`).join('')}
+
+/* ───────── media ───────── */
+PAGES.media=async()=>{
+  view(`<div class="section-head"><div><span class="eyebrow">REUSABLE FILES</span><h1>Media library</h1><p>Upload once, reuse everywhere: template headers, automation steps and inbox replies.</p></div></div>
+  <div class="drop"><label class="btn primary" style="cursor:pointer">⬆ Upload files<input type="file" hidden multiple id="mUp"></label><div style="margin-top:8px;font-size:12px">JPG, PNG (≤5 MB) · MP4, 3GP (≤16 MB) · PDF, DOC, XLS, PPT, TXT, CSV (≤16 MB)</div></div>
+  <div class="tabs" id="mTabs">${[['','All'],['image','Images'],['video','Videos'],['document','Documents']].map(([k,l],i)=>`<button class="${i?'':'on'}" data-k="${k}">${l}</button>`).join('')}</div><div class="mgrid" id="mGrid"></div>`);
+  let kind='';const load=async()=>{const d=await api('/api/media'+(kind?'?kind='+kind:''));d.media.forEach(m=>S.mediaMap[m.id]=m);
+    $('mGrid').innerHTML=d.media.length?d.media.map(m=>`<div class="mi" onclick="window.open('${m.url}','_blank')"><div class="th">${mediaThumb(m)}</div><div class="in"><b>${esc(m.filename)}</b><small>${m.kind} · ${(m.size/1024).toFixed(0)} KB</small></div><button class="rm" onclick="event.stopPropagation();mDel(${m.id})">✕</button></div>`).join(''):'<div class="empty-state" style="grid-column:1/-1">No files yet.</div>'};
+  document.querySelectorAll('#mTabs button').forEach(b=>b.onclick=()=>{kind=b.dataset.k;document.querySelectorAll('#mTabs button').forEach(x=>x.classList.toggle('on',x===b));load()});
+  $('mUp').onchange=async e=>{for(const f of e.target.files){try{await uploadFile(f)}catch(x){toast(f.name+': '+x.message,'err')}}toast('Upload finished','ok');load()};load()};
+function mDel(id){confirmBox('Delete this file? Templates and automations using it will lose it.',async()=>{await api('/api/media/'+id,{method:'DELETE'});delete S.mediaMap[id];PAGES.media()},'Delete')}
+
+/* ───────── team ───────── */
+PAGES.team=async()=>{
+  const d=await api('/api/team');S.members=d.members;const lim=S.me.plan.limits.max_members;
+  view(`<div class="section-head"><div><span class="eyebrow">YOUR TEAM</span><h1>Team members</h1><p>Create logins and assign each person to specific WhatsApp numbers. They only see the numbers you give them.</p></div><button class="btn primary" onclick="teamEdit()">＋ Add team member</button></div>
+  <div style="font-size:12.5px;color:var(--b);margin-bottom:12px">Seats used: <b>${d.members.length}</b> of <b>${lim||'unlimited'}</b></div>
+  <div class="table-wrap"><table><thead><tr><th>MEMBER</th><th>NUMBERS</th><th>CAN MANAGE</th><th>STATUS</th><th></th></tr></thead><tbody>${d.members.length?d.members.map(m=>`<tr><td><div class="who"><span class="avatar">${esc(m.name[0].toUpperCase())}</span><div><b>${esc(m.name)}</b><small>${esc(m.email)} · +${esc(m.phone)}</small></div></div></td>
+   <td>${m.number_ids.map(i=>{const n=S.numbers.find(x=>x.id===i);return `<span class="chip">${esc(n?n.display_phone||n.phone_number_id:'#'+i)}</span>`}).join('')}</td>
+   <td>${['automations','templates','forms'].filter(k=>m.permissions[k]).map(k=>`<span class="chip">${k}</span>`).join('')||'<span style="color:var(--dim)">Inbox & leads only</span>'}</td><td><span class="badge ${m.status==='active'?'green':'red'}">${m.status}</span></td>
+   <td class="tr"><button class="btn sm light" onclick="teamEdit(${m.id})">Edit</button> <button class="btn sm danger" onclick="teamDel(${m.id})">Remove</button></td></tr>`).join(''):'<tr><td colspan="5"><div class="empty-state"><b>No team members yet</b>Add a teammate and assign a number.</div></td></tr>'}</tbody></table></div>`)};
+function genPw(){const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';return Array.from(crypto.getRandomValues(new Uint32Array(10)),x=>c[x%c.length]).join('')}
+function teamEdit(id){
+  if(!S.numbers.length)return toast('Connect a WhatsApp number first','err');
+  const m=id?S.members.find(x=>x.id===id):null;
+  modal({title:m?'Edit team member':'Add team member',wide:true,body:`<div class="row2"><div><label class="fl">Name</label><input class="f" id="tmN" value="${esc(m?.name||'')}"></div><div><label class="fl">Phone</label><input class="f" id="tmP" value="${esc(m?.phone||'')}"></div></div>
+   <div class="row2"><div><label class="fl">Email (login ID)</label><input class="f" id="tmE" value="${esc(m?.email||'')}" ${m?'disabled':''}></div><div><label class="fl">Password ${m?'<small>leave empty to keep</small>':''}</label><div class="flex"><input class="f grow" id="tmW" value="${m?'':genPw()}"><button class="btn sm light" onclick="$('tmW').value=genPw()">Generate</button></div></div></div>
+   <label class="fl">Assigned WhatsApp numbers <small>pick at least one</small></label>${S.numbers.map(n=>`<label class="check"><input type="checkbox" class="tmNum" value="${n.id}" ${m?.number_ids.includes(n.id)?'checked':''}> ${esc(n.display_phone||n.phone_number_id)} <span style="color:var(--dim)">${esc(n.verified_name||'')}</span></label>`).join('')}
+   <label class="fl">Extra permissions <small>inbox and leads are always included</small></label>${[['automations','Manage automations'],['templates','Manage templates'],['forms','Manage forms']].map(([k,l])=>`<label class="check"><input type="checkbox" class="tmPerm" value="${k}" ${m?.permissions[k]?'checked':''}> ${l}</label>`).join('')}
+   ${m?`<label class="check"><input type="checkbox" id="tmAct" ${m.status==='active'?'checked':''}> Account active</label>`:'<div class="help mt">Share the email and password with your teammate. They sign in at the same login page.</div>'}`,
+   buttons:[['Cancel','light',e=>closeModal(e)],[m?'Save changes':'Create member','primary',async e=>{
+    const nums=[...e.querySelectorAll('.tmNum:checked')].map(x=>+x.value),perms={};e.querySelectorAll('.tmPerm').forEach(x=>perms[x.value]=x.checked);
+    const body={name:$('tmN').value,phone:$('tmP').value,number_ids:nums,permissions:perms};if($('tmW').value)body.password=$('tmW').value;
+    if(m){body.status=$('tmAct').checked?'active':'disabled';await api('/api/team/'+id,{method:'PATCH',body})}
+    else{body.email=$('tmE').value;await api('/api/team',{method:'POST',body});modal({title:'Member created',body:`<p style="padding:12px 0;color:var(--b)">Share these login details now. The password is not shown again.</p><div class="linkbox"><code>Email: ${esc(body.email)}<br>Password: ${esc(body.password)}</code></div>`,buttons:[['Done','primary',x=>closeModal(x)]]})}
+    closeModal(e);PAGES.team()}]]})}
+function teamDel(id){confirmBox('Remove this team member? They lose access immediately.',async()=>{await api('/api/team/'+id,{method:'DELETE'});PAGES.team()},'Remove')}
+
+/* ───────── billing ───────── */
+PAGES.billing=async()=>{
+  const [pl]=await Promise.all([api('/api/plans'),loadMe()]);const p=S.me.plan,u=S.me.usage,L=p.limits;
+  const meter=(k,l)=>{const lim=L[k],use=u[k],pc=lim?Math.min(100,use/lim*100):0;return `<div class="meter"><div class="tp"><span>${l}</span><span>${use} / ${lim||'∞'}</span></div><div class="tr"><i style="width:${pc}%"></i></div></div>`};
+  view(`<div class="section-head"><div><span class="eyebrow">SUBSCRIPTION</span><h1>Billing & plan</h1><p>Pick a plan and pay securely with Razorpay. Your plan activates instantly.</p></div></div>
+  <div class="planhero"><h2>${p.active?esc(p.name):(p.expired?'Plan expired':'No active plan')}</h2><p>${p.active?'Your subscription is active.':'Choose a plan below to unlock your workspace.'}</p>
+   <div class="facts"><div>Status<b>${p.active?'Active':'Inactive'}</b></div><div>Renews / ends<b>${p.expires_at?fmtD(p.expires_at):'—'}</b></div><div>Days left<b>${p.active?p.days_left:'—'}</b></div></div></div>
+  ${p.active?`<div class="panel"><h3>Usage</h3><div class="sub">What you've used on this plan</div><div class="row2"><div>${meter('max_numbers','WhatsApp numbers')}${meter('max_members','Team members')}</div><div>${meter('max_automations','Automations')}${meter('max_forms','Forms')}</div></div></div>`:''}
+  ${S.me.payments_ready?'':'<div class="banner warn">Online payments are not enabled yet. Please contact the admin to activate your plan.</div>'}
+  <div class="plans">${pl.plans.map(x=>`<div class="plan ${x.id===p.plan_id&&p.active?'cur':''}"><b style="font:700 17px 'Space Grotesk'">${esc(x.name)}</b><small style="color:var(--b)">${esc(x.description)}</small><div class="pr">${money(x.price)}</div><small style="color:var(--dim)">for ${x.duration_days} days</small>
+   <ul>${x.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul><button class="btn primary" style="margin-top:auto;justify-content:center" onclick="subscribe(${x.id})" ${S.me.payments_ready?'':'disabled'}>${x.id===p.plan_id&&p.active?'Renew plan':'Subscribe'}</button></div>`).join('')}</div>`)};
+async function subscribe(planId){
+  const o=await api('/api/billing/order',{method:'POST',body:{plan_id:planId}});
+  if(typeof Razorpay==='undefined')return toast('Razorpay could not load. Check your connection and retry.','err');
+  const rz=new Razorpay({key:o.key_id,amount:o.amount,currency:o.currency,order_id:o.order_id,name:'DMvora',description:o.description,prefill:{name:S.me.user.name,email:S.me.user.email,contact:S.me.user.phone},theme:{color:'#2563eb'},
+   handler:async r=>{try{const v=await api('/api/billing/verify',{method:'POST',body:r});await loadMe();await loadNumbers();
+     modal({title:'Subscription activated 🎉',body:`<div style="text-align:center;padding:18px 0"><div style="width:68px;height:68px;border-radius:50%;background:var(--grad);color:#fff;font-size:32px;display:grid;place-items:center;margin:0 auto 14px">✓</div><h3 style="font:700 20px 'Space Grotesk'">${esc(v.plan)} plan is active</h3><p style="color:var(--b);margin-top:6px">Valid until <b>${fmtD(v.expires_at)}</b>. You can now connect your WhatsApp number and start working.</p></div>`,buttons:[['Get started','primary',e=>{closeModal(e);go(S.numbers.length?'overview':'settings')}]]})}
+     catch(e){toast(e.message,'err')}}});
+  rz.on('payment.failed',r=>toast((r.error&&r.error.description)||'Payment failed','err'));rz.open()}
+
+/* ───────── settings + Meta embedded signup ───────── */
+const MES={cfg:null,sdk:false,code:'',session:null,posting:false,mode:'new',timer:null};
+PAGES.settings=async()=>{
+  const d=owner()?await api('/api/numbers'):{numbers:S.numbers};S.numbers=d.numbers;
+  view(`<div class="section-head"><div><span class="eyebrow">ACCOUNT</span><h1>Settings</h1><p>${owner()?'Connect WhatsApp numbers and manage your login.':'Manage your login.'}</p></div></div>
+  ${owner()?`<div class="panel"><div class="connect"><div class="ci">◎</div><div class="tx"><h3>Connect a WhatsApp Business number</h3><p><b>New number:</b> create or choose a number in a Meta popup.<br><b>Coexistence:</b> keep using the same number in your <u>WhatsApp Business app</u> on your phone <i>and</i> in DMvora. Meta shows a QR code to scan from WhatsApp Business → Linked devices.</p><small id="metaStatus" style="color:var(--dim)">Checking Meta configuration…</small></div>
+   <div class="flex"><button class="btn primary" id="cBtn" onclick="connectMeta('new')">Connect new number</button><button class="btn wa" id="cBtn2" onclick="connectMeta('coex')">📱 Connect existing WhatsApp Business app number</button></div></div></div>
+   <div class="panel"><h3>Connected numbers</h3><div class="sub">Messages for these numbers arrive through the shared Meta webhook.</div>${d.numbers.length?d.numbers.map(n=>`<div class="numcard"><span class="avatar">${n.coexistence?'📱':'☎'}</span><div><b>${esc(n.display_phone||n.phone_number_id)}</b><small>${esc(n.verified_name||'')} ${n.coexistence?'· Coexistence (also active in the Business app)':''}</small></div><span class="badge ${n.quality==='GREEN'?'green':''}">${esc(n.quality||'connected')}</span><button class="btn sm danger" onclick="numDel(${n.id})">Disconnect</button></div>`).join(''):'<div class="empty-state">No numbers connected yet.</div>'}
+   <div class="help" style="margin:14px 0 0"><b>Coexistence tips:</b> use the latest WhatsApp Business app and open it at least once every ~13 days or Meta disconnects the link. Messages you type in the phone app appear here as “📱 phone app”, and automations pause for a few minutes after you reply by hand.</div></div>`:''}
+  <div class="panel"><h3>Change password</h3><div class="row3"><div><label class="fl">Current password</label><input class="f" type="password" id="pwc"></div><div><label class="fl">New password</label><input class="f" type="password" id="pwn" minlength="8"></div><div><label class="fl">&nbsp;</label><button class="btn primary" onclick="pwSave()">Update password</button></div></div></div>`);
+  if(owner())metaInit()};
+async function pwSave(){await api('/api/me/password',{method:'POST',body:{current:$('pwc').value,new:$('pwn').value}});$('pwc').value=$('pwn').value='';toast('Password updated','ok')}
+function numDel(id){confirmBox('Disconnect this number? Its leads, messages, automations and templates in DMvora will be deleted.',async()=>{await api('/api/numbers/'+id,{method:'DELETE'});await loadNumbers();PAGES.settings()},'Disconnect')}
+async function metaInit(){
+  try{MES.cfg=await api('/api/meta/config')}catch(e){return}
+  const st=$('metaStatus');if(!MES.cfg.ready){if(st)st.textContent='Meta Embedded Signup is not configured on the server.';return}if(st)st.textContent='Ready';
+  if(MES.sdk||window.FB){MES.sdk=true;return}
+  window.fbAsyncInit=()=>{FB.init({appId:MES.cfg.app_id,autoLogAppEvents:true,xfbml:true,version:MES.cfg.api_version});MES.sdk=true};
+  const s=document.createElement('script');s.async=true;s.defer=true;s.crossOrigin='anonymous';s.src='https://connect.facebook.net/en_US/sdk.js';document.body.appendChild(s)}
+window.addEventListener('message',ev=>{
+  if(!/^https:\/\/([a-z0-9-]+\.)*facebook\.com$/.test(ev.origin))return;let d=ev.data;if(typeof d==='string'){try{d=JSON.parse(d)}catch(e){return}}
+  if(!d||d.type!=='WA_EMBEDDED_SIGNUP')return;
+  if(String(d.event||'').startsWith('FINISH')){if(d.event==='FINISH_WHATSAPP_BUSINESS_APP_ONBOARDING')MES.mode='coex';MES.session=d.data||{};mesDone()}
+  else if(d.event==='CANCEL'){mesBusy(false);toast('Signup cancelled','err')}else if(d.event==='ERROR'){mesBusy(false);toast('Meta error: '+((d.data||{}).error_message||'unknown'),'err')}});
+function mesBusy(on){['cBtn','cBtn2'].forEach(i=>{const b=$(i);if(b)b.disabled=on})}
+function connectMeta(mode){
+  if(!MES.cfg||!MES.cfg.ready)return toast('Embedded Signup is not configured on the server.','err');
+  if(!window.FB)return toast('Facebook is still loading. Try again in a second.','err');
+  MES.mode=mode==='coex'?'coex':'new';MES.code='';MES.session=null;MES.posting=false;mesBusy(true);
+  FB.login(function(r){
+    if(r&&r.authResponse&&r.authResponse.code){MES.code=r.authResponse.code;mesDone();clearTimeout(MES.timer);MES.timer=setTimeout(()=>mesDone(true),5000)}
+    else{mesBusy(false);toast('Facebook login was cancelled.','err')}},
+   {config_id:MES.cfg.config_id,response_type:'code',override_default_response_type:true,extras:{setup:{},featureType:MES.mode==='coex'?'whatsapp_business_app_onboarding':'',sessionInfoVersion:'3'}})}
+async function mesDone(force){
+  if(!MES.code||MES.posting)return;if(!MES.session&&!force)return;MES.posting=true;clearTimeout(MES.timer);const code=MES.code,s=MES.session||{};MES.code='';
+  try{await api('/api/meta/complete',{method:'POST',body:{code,waba_id:s.waba_id||'',phone_number_id:s.phone_number_id||'',business_id:s.business_id||'',coexistence:MES.mode==='coex'}});
+    toast(MES.mode==='coex'?'Number connected in coexistence mode':'Number connected','ok');await loadNumbers();PAGES.settings()}
+  catch(e){toast(e.message,'err')}finally{MES.posting=false;mesBusy(false)}}
+
+/* ───────── admin: clients ───────── */
+let CL={tab:'pending',list:[],plans:[]};
+PAGES.clients=async()=>{
+  const [c,p]=await Promise.all([api('/api/admin/clients'),api('/api/plans?all=1')]);CL.list=c.clients;CL.plans=p.plans;
+  const cnt=s=>CL.list.filter(x=>x.status===s).length;
+  view(`<div class="section-head"><div><span class="eyebrow">ROOT ADMIN</span><h1>Clients</h1><p>Approve signups, assign plans and manage client accounts.</p></div><button class="btn primary" onclick="clientAdd()">＋ Add client</button></div>
+  <div class="linkbox"><span style="font-weight:600">Client signup link</span><code id="suLink">${esc(S.me.signup_url)}</code><button class="btn sm primary" onclick="navigator.clipboard.writeText($('suLink').textContent).then(()=>toast('Link copied','ok'))">Copy link</button></div>
+  <div class="tabs">${[['pending','Pending'],['active','Active'],['disabled','Disabled'],['rejected','Rejected'],['all','All']].map(([k,l])=>`<button class="${CL.tab===k?'on':''}" onclick="CL.tab='${k}';PAGES.clients()">${l}${k==='all'?'':' ('+cnt(k)+')'}</button>`).join('')}</div>
+  <div class="table-wrap"><table><thead><tr><th>CLIENT</th><th>PLAN</th><th>USAGE</th><th>STATUS</th><th>JOINED</th><th></th></tr></thead><tbody>${(()=>{const rows=CL.list.filter(x=>CL.tab==='all'||x.status===CL.tab);return rows.length?rows.map(x=>`<tr><td><div class="who"><span class="avatar">${esc(x.name[0].toUpperCase())}</span><div><b>${esc(x.name)}</b><small>${esc(x.email)} · +${esc(x.phone)}${x.business?' · '+esc(x.business):''}</small></div></div></td>
+   <td>${x.plan_name?`<b>${esc(x.plan_name)}</b><small style="display:block;color:${x.plan_active?'var(--green)':'var(--red)'}">${x.plan_active?'until '+fmtD(x.plan_expires_at):'expired '+fmtD(x.plan_expires_at)}</small>`:'<span style="color:var(--dim)">No plan</span>'}</td><td><small>${x.numbers_count} numbers · ${x.members_count} members</small></td>
+   <td><span class="badge ${x.status==='active'?'green':x.status==='pending'?'amber':'red'}">${x.status}</span></td><td>${fmtD(x.created_at)}</td>
+   <td class="tr">${x.status==='pending'?`<button class="btn sm primary" onclick="clientApprove(${x.id})">Approve</button> <button class="btn sm danger" onclick="clientAct(${x.id},'reject')">Reject</button>`:`<button class="btn sm light" onclick="clientPlan(${x.id})">Plan</button> <button class="btn sm light" onclick="clientPw(${x.id})">Password</button> ${x.status==='active'?`<button class="btn sm light" onclick="clientAct(${x.id},'disable')">Disable</button>`:`<button class="btn sm light" onclick="clientAct(${x.id},'enable')">Enable</button>`}`} <button class="btn sm danger" onclick="clientDel(${x.id})">Delete</button></td></tr>`).join(''):'<tr><td colspan="6"><div class="empty-state">Nothing here.</div></td></tr>'})()}</tbody></table></div>`)};
+const planOpts=sel=>'<option value="">— No plan —</option>'+CL.plans.filter(p=>p.active).map(p=>`<option value="${p.id}" ${sel==p.id?'selected':''}>${esc(p.name)} · ${money(p.price)} / ${p.duration_days}d</option>`).join('');
+async function clientAct(id,action,plan_id){await api(`/api/admin/clients/${id}/action`,{method:'POST',body:{action,plan_id}});toast('Done','ok');PAGES.clients()}
+function clientApprove(id){modal({title:'Approve client',body:`<label class="fl">Give a plan right away <small>optional. The client can also subscribe themselves.</small></label><select class="f" id="apPl">${planOpts('')}</select>`,buttons:[['Cancel','light',e=>closeModal(e)],['Approve','primary',async e=>{await clientAct(id,'approve',$('apPl').value||null);closeModal(e)}]]})}
+function clientDel(id){confirmBox('Delete this client and ALL their numbers, leads, messages, files and team members? This cannot be undone.',async()=>{await api('/api/admin/clients/'+id,{method:'DELETE'});PAGES.clients()},'Delete everything')}
+function clientPlan(id){const c=CL.list.find(x=>x.id===id);modal({title:'Assign plan · '+c.name,body:`<label class="fl">Plan</label><select class="f" id="cpPl">${planOpts(c.plan_id)}</select>
+  <div class="row2"><div><label class="fl">Extend by days <small>blank = plan duration</small></label><input class="f" type="number" id="cpD" min="1"></div><div><label class="fl">Or set exact end date</label><input class="f" type="date" id="cpE"></div></div>`,
+  buttons:[['Cancel','light',e=>closeModal(e)],['Save','primary',async e=>{await api(`/api/admin/clients/${id}/plan`,{method:'POST',body:{plan_id:$('cpPl').value||null,days:$('cpD').value||null,expires_at:$('cpE').value||null}});closeModal(e);toast('Plan updated','ok');PAGES.clients()}]]})}
+function clientPw(id){modal({title:'Reset password',body:`<label class="fl">New password</label><div class="flex"><input class="f grow" id="rpw" value="${genPw()}"><button class="btn sm light" onclick="$('rpw').value=genPw()">Generate</button></div>`,buttons:[['Cancel','light',e=>closeModal(e)],['Set password','primary',async e=>{await api(`/api/admin/clients/${id}/password`,{method:'POST',body:{password:$('rpw').value}});closeModal(e);toast('Password changed','ok')}]]})}
+function clientAdd(){modal({title:'Add client',wide:true,body:`<div class="row2"><div><label class="fl">Name</label><input class="f" id="caN"></div><div><label class="fl">Business</label><input class="f" id="caB"></div></div><div class="row2"><div><label class="fl">Email</label><input class="f" id="caE"></div><div><label class="fl">Phone</label><input class="f" id="caP"></div></div>
+  <div class="row2"><div><label class="fl">Password</label><div class="flex"><input class="f grow" id="caW" value="${genPw()}"><button class="btn sm light" onclick="$('caW').value=genPw()">Generate</button></div></div><div><label class="fl">Plan</label><select class="f" id="caPl">${planOpts('')}</select></div></div>`,
+  buttons:[['Cancel','light',e=>closeModal(e)],['Create client','primary',async e=>{await api('/api/admin/clients',{method:'POST',body:{name:$('caN').value,business:$('caB').value,email:$('caE').value,phone:$('caP').value,password:$('caW').value,plan_id:$('caPl').value||null}});closeModal(e);toast('Client created. Share the login details with them.','ok');PAGES.clients()}]]})}
+
+/* ───────── admin: plans & payments ───────── */
+PAGES.plans=async()=>{
+  const d=await api('/api/plans?all=1');S.planList=d.plans;
+  view(`<div class="section-head"><div><span class="eyebrow">ROOT ADMIN</span><h1>Plans</h1><p>Create the subscription plans clients can buy. Use 0 for unlimited.</p></div><button class="btn primary" onclick="planEdit()">＋ Create plan</button></div>
+  <div class="plans">${d.plans.map(p=>`<div class="plan" style="${p.active?'':'opacity:.55'}"><div class="flex"><b style="font:700 17px 'Space Grotesk'">${esc(p.name)}</b>${p.active?'':'<span class="badge">archived</span>'}</div><small style="color:var(--b)">${esc(p.description)}</small><div class="pr">${money(p.price)}</div><small style="color:var(--dim)">${p.duration_days} days</small>
+   <ul><li>${p.max_numbers||'Unlimited'} numbers</li><li>${p.max_members||'Unlimited'} team members</li><li>${p.max_automations||'Unlimited'} automations</li><li>${p.max_forms||'Unlimited'} forms</li>${p.features.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+   <div class="flex" style="margin-top:auto"><button class="btn sm light" onclick="planEdit(${p.id})">Edit</button><button class="btn sm danger" onclick="planDel(${p.id})">Delete</button></div></div>`).join('')}</div>`)};
+function planEdit(id){const p=id?S.planList.find(x=>x.id===id):{name:'',description:'',price:999,duration_days:30,max_numbers:1,max_members:2,max_automations:5,max_forms:3,features:[],active:1};
+  modal({title:id?'Edit plan':'Create plan',wide:true,body:`<div class="row2"><div><label class="fl">Plan name</label><input class="f" id="pnN" value="${esc(p.name)}"></div><div><label class="fl">Short description</label><input class="f" id="pnD" value="${esc(p.description)}"></div></div>
+  <div class="row2"><div><label class="fl">Price (₹)</label><input class="f" type="number" id="pnP" min="0" value="${p.price}"></div><div><label class="fl">Duration (days)</label><input class="f" type="number" id="pnT" min="1" value="${p.duration_days}"></div></div>
+  <div class="row2"><div><label class="fl">Max WhatsApp numbers</label><input class="f" type="number" min="0" id="pn1" value="${p.max_numbers}"></div><div><label class="fl">Max team members</label><input class="f" type="number" min="0" id="pn2" value="${p.max_members}"></div></div>
+  <div class="row2"><div><label class="fl">Max automations</label><input class="f" type="number" min="0" id="pn3" value="${p.max_automations}"></div><div><label class="fl">Max forms</label><input class="f" type="number" min="0" id="pn4" value="${p.max_forms}"></div></div>
+  <label class="fl">Feature bullets <small>one per line, shown to clients</small></label><textarea class="f" id="pnF" rows="4">${esc(p.features.join('\n'))}</textarea><label class="check"><input type="checkbox" id="pnA" ${p.active?'checked':''}> Available for clients to buy</label>`,
+  buttons:[['Cancel','light',e=>closeModal(e)],['Save plan','primary',async e=>{const body={name:$('pnN').value,description:$('pnD').value,price:$('pnP').value,duration_days:$('pnT').value,max_numbers:$('pn1').value,max_members:$('pn2').value,max_automations:$('pn3').value,max_forms:$('pn4').value,features:$('pnF').value,active:$('pnA').checked};
+   await api(id?'/api/admin/plans/'+id:'/api/admin/plans',{method:id?'PATCH':'POST',body});closeModal(e);toast('Plan saved','ok');PAGES.plans()}]]})}
+function planDel(id){confirmBox('Delete this plan? If clients use it, it is archived instead.',async()=>{const r=await api('/api/admin/plans/'+id,{method:'DELETE'});toast(r.archived?'Plan archived':'Plan deleted','ok');PAGES.plans()},'Delete')}
+PAGES.payments=async()=>{
+  const d=await api('/api/admin/payments');const total=d.payments.filter(p=>p.status==='paid').reduce((a,p)=>a+p.amount,0);
+  view(`<div class="section-head"><div><span class="eyebrow">ROOT ADMIN</span><h1>Payments</h1><p>Total collected: <b>${money(total)}</b></p></div></div>
+  <div class="table-wrap"><table><thead><tr><th>CLIENT</th><th>PLAN</th><th>AMOUNT</th><th>STATUS</th><th>PAYMENT ID</th><th>DATE</th></tr></thead><tbody>${d.payments.length?d.payments.map(p=>`<tr><td><b>${esc(p.user_name)}</b><small style="display:block;color:var(--b)">${esc(p.user_email)}</small></td><td>${esc(p.plan_name)}</td><td>${money(p.amount)}</td><td><span class="badge ${p.status==='paid'?'green':'amber'}">${p.status}</span></td><td><small>${esc(p.rzp_payment_id||'—')}</small></td><td>${fmtD(p.paid_at||p.created_at)}</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty-state">No payments yet.</div></td></tr>'}</tbody></table></div>`)};
+
+/* ───────── boot ───────── */
+(async()=>{
+  try{await loadMe();await loadNumbers();const first=S.me.plan.active||role()==='admin'?'overview':'billing';go(first)}
+  catch(e){if(e.status!==401)view(`<div class="empty-state"><b>Could not load</b>${esc(e.message)}</div>`)}})();
+{% endraw %}
+</script></body></html>
